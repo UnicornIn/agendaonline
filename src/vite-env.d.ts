@@ -9,8 +9,9 @@ interface ImportMetaEnv {
   readonly VITE_ROUTER_BASENAME?: string;
   readonly VITE_PUBLIC_BASE?: string;
   readonly VITE_DEV_PROXY_TARGET?: string;
-  readonly VITE_BRANCH_ID?: string;
-  readonly VITE_WHATSAPP_NUMBER?: string;
+  // La sede, el WhatsApp y el abono ya no son variables de build: salen de
+  // GET /public/agendamiento/config, que es donde la sede los puede cambiar
+  // sin que nadie tenga que volver a desplegar la web.
 }
 
 interface ImportMeta {

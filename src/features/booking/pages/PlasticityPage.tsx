@@ -1,24 +1,42 @@
-import { useBookingFlow } from "../useBookingFlow";
-import { PLASTICITY_OPTIONS } from "../../../data/diagnosis";
-import { Callout, Kicker, MediaCard, Sub, Title } from "../../../components/ui";
+import { useNavigate } from "react-router-dom";
+import { buscarServicio, plasticidadDisponible } from "../../../data/catalog";
+import { useApp } from "../../../context/AppContext";
+import { PATHS } from "../../../router/paths";
+import { Callout, Kicker, MediaCard, Sub, TitleHtml } from "../../../components/ui";
+import type { Plasticidad } from "../../../types";
 
+/**
+ * Paso 2 del diagnóstico: si el rizo se forma solo.
+ *
+ * Una plasticidad que el servicio no presta se muestra desactivada en vez de
+ * esconderse: que exista y no aplique es información —"definición sencilla no
+ * es para plasticidad baja"— y esconderla deja a la clienta preguntándose por
+ * qué solo hay una opción. Por eso el callout muestra la nota del servicio
+ * cuando una de las dos está cerrada.
+ */
 export default function PlasticityPage() {
-  const { setPlasticity } = useBookingFlow();
+  const navigate = useNavigate();
+  const { t, reserva, actualizar } = useApp();
+  const s = buscarServicio(reserva.svc)!;
+
+  const hayPa = plasticidadDisponible(s, "pa");
+  const hayPb = plasticidadDisponible(s, "pb");
+
+  const elegir = (p: Plasticidad) => {
+    actualizar({ plast: p });
+    navigate(PATHS.detail);
+  };
 
   return (
     <>
-      <Kicker style={{ marginTop: 14 }}>Paso 2 de 2 · Tu cabello</Kicker>
-      <Title>¿Tu rizo se forma<br />solo al secarse?</Title>
-      <Sub>
-        A eso le decimos plasticidad: qué tan fácil tu rizo toma forma. Junto con la densidad, define tu valor y el
-        tiempo que reservamos.
-      </Sub>
+      <Kicker style={{ marginTop: 14 }}>{t("paso2")}</Kicker>
+      <TitleHtml html={t("plastTitulo")} />
+      <Sub>{t("plastSub")}</Sub>
       <div className="two">
-        {PLASTICITY_OPTIONS.map((o) => (
-          <MediaCard key={o.name} name={o.name} hint={o.hint} video={o.video} onClick={() => setPlasticity(o.value)} />
-        ))}
+        <MediaCard name={t("soloSe")} hint={t("soloSeH")} disabled={!hayPa} onClick={() => elegir("pa")} />
+        <MediaCard name={t("ayuda")} hint={t("ayudaH")} disabled={!hayPb} onClick={() => elegir("pb")} />
       </div>
-      <Callout>Si dudas, elige el que más se parezca. En el salón la estilista confirma el diagnóstico antes de comenzar.</Callout>
+      <Callout>{!hayPa || !hayPb ? s.nota ?? t("dudas") : t("dudas")}</Callout>
     </>
   );
 }

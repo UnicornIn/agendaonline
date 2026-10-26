@@ -1,50 +1,91 @@
-import { useBookingFlow } from "../useBookingFlow";
+import { useNavigate } from "react-router-dom";
+import { ABONO } from "../../../data/catalog";
 import { business } from "../../../config";
+import { useApp } from "../../../context/AppContext";
+import { useHistorial } from "../useHistorial";
 import { PATHS } from "../../../router/paths";
-import { firstName } from "../../../lib/format";
-import { requireFields } from "../../../lib/assert";
-import { computeTotal } from "../../../lib/pricing";
-import { downloadICS } from "../../../lib/calendar";
-import BookingSummary from "../components/BookingSummary";
-import type { StartPageState } from "./StartPage";
+import { calcularTotal, money, saldo } from "../../../lib/pricing";
+import { fechaISOBonita } from "../../../lib/dates";
+import { descargarICS } from "../../../lib/calendar";
+import { Button, Stack, Sub, SummaryTable, Title } from "../../../components/ui";
 import { BigTickIcon } from "../../../components/ui/Icons";
-import { Button, Note, Stack, Sub } from "../../../components/ui";
 
+/**
+ * Cita confirmada.
+ *
+ * El bloque "esto le llegó al agente" solo se pinta en desarrollo. Es una
+ * ayuda para revisar qué se manda a la sede, no algo que la clienta tenga que
+ * leer: le muestra el mensaje interno del salón —con su celular y la etiqueta
+ * de trabajo— en la pantalla donde lo único que espera es que le confirmen la
+ * cita.
+ */
 export default function DonePage() {
-  const { catalog, navigate, ...flow } = useBookingFlow();
-  const booking = requireFields(flow.booking, ["svc", "opt", "date", "time"]);
-  const t = computeTotal(catalog, booking);
+  const navigate = useNavigate();
+  const { t, lang, reserva, reiniciar } = useApp();
+  const { olvidar } = useHistorial();
+  const total = calcularTotal(reserva);
 
-  const addToCalendar = () =>
-    downloadICS({
-      title: `${business.brand}: ${t.labels.join(" + ")}`,
-      date: booking.date,
-      startMins: booking.time.start,
-      durationMins: t.mins,
-      location: `${business.brand} · Sede ${business.branch.name}, ${business.branch.city}`,
-      description: `Valor ${t.price}. Reserva ${booking.bookingId ?? ""}`,
+  const cuando = `${fechaISOBonita(reserva.fecha, lang)} · ${reserva.hora}`;
+  const quien = reserva.estilista ?? t("primeraDisp");
+  const restante = saldo(reserva, t("elResto"));
+
+  const aviso = lang === "es"
+    ? `Cliente agendó cita\n${reserva.nombre} · ${reserva.pais} ${reserva.tel}\n${total.labels.join(" + ")}\n${cuando} · ${quien}\nValor ${total.precio} · Abono ${money(ABONO)} · Saldo ${restante}\nComprobante adjunto · confirmar abono`
+    : `Client booked an appointment\n${reserva.nombre} · ${reserva.pais} ${reserva.tel}\n${total.labels.join(" + ")}\n${cuando} · ${quien}\nTotal ${total.precio} · Deposit ${money(ABONO)} · Balance ${restante}\nReceipt attached · confirm deposit`;
+
+  function agendarOtra() {
+    // Se suelta también el historial: la siguiente cita puede ser de otra
+    // persona en el mismo celular.
+    olvidar();
+    reiniciar();
+    navigate(PATHS.start, { replace: true });
+  }
+
+  function alCalendario() {
+    if (!reserva.fecha || !reserva.hora) return;
+    descargarICS({
+      title: `${business.brand}: ${total.labels.join(" + ")}`,
+      date: reserva.fecha,
+      hora: reserva.hora,
+      durationMins: total.mins || 90,
+      location: `${business.brand} · ${t("sede")}`,
+      description: `${t("valor")} ${total.precio} · ${t("abono")} ${money(ABONO)}`,
     });
-
-  // La portada limpia la reserva al montarse: limpiarla aquí haría que el guard de esta ruta redirija al menú
-  const again = () => navigate(PATHS.start, { replace: true, state: { resetBooking: true } satisfies StartPageState });
+  }
 
   return (
     <>
       <div className="done">
         <div className="tick"><BigTickIcon /></div>
-        <h1 className="title" style={{ fontSize: 30 }}>Cupo apartado</h1>
-        <Sub>
-          Listo, {firstName(booking.name)}. Confirmamos tu cita apenas verifiquemos el comprobante, y te escribimos por WhatsApp.
-        </Sub>
+        <Title style={{ fontSize: 29 }}>{t("listoTitulo")}</Title>
+        <Sub>{t("listoSub", { "%s": reserva.nombre.split(" ")[0] })}</Sub>
       </div>
-      <BookingSummary catalog={catalog} booking={booking} variant="done" />
-      <Stack>
-        <Button variant="ghost" onClick={addToCalendar}>Agregar a mi calendario</Button>
-        <Button variant="ghost" onClick={again}>Agendar otra cita</Button>
+
+      <SummaryTable
+        rows={[
+          [reserva.extras.length ? t("servicios") : t("servicio"), total.labels.join(" + ")],
+          [t("cuando"), cuando],
+          [t("con"), quien],
+          [t("valor"), total.precio],
+          [t("abono"), money(ABONO)],
+          [t("saldo"), restante],
+        ]}
+      />
+
+      {import.meta.env.DEV && (
+        <div className="agente">
+          <div className="ah">{t("avisoAgente")}</div>
+          <div className="ab">{aviso}</div>
+          <span className="etiqueta">{t("etiqueta")}</span>
+        </div>
+      )}
+
+      <Stack style={{ marginTop: 16 }}>
+        <Button variant="ghost" onClick={alCalendario}>{t("calendario")}</Button>
+        <Button variant="ghost" onClick={agendarOtra}>{t("agendarOtra")}</Button>
       </Stack>
-      <Note>
-        Reserva {booking.bookingId ? <b>{booking.bookingId}</b> : "creada"} en Agenda RF (TAP), pendiente de verificar el abono.
-      </Note>
+
+      <p className="note">{t("reprogramar")}</p>
     </>
   );
 }

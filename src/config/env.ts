@@ -31,12 +31,11 @@ export const config: Readonly<AppConfig> = Object.freeze<AppConfig>({
   api: {
     // Dominio del backend: .env > mapa de dominios > mismo origen
     baseUrl: (env.VITE_API_BASE_URL || domain.apiBaseUrl || "").replace(/\/+$/, ""),
-    prefix: "/" + trimSlashes(env.VITE_API_PREFIX ?? "/api/v1"),
+    prefix: "/" + trimSlashes(env.VITE_API_PREFIX ?? "/public/agendamiento"),
     timeoutMs: Number(env.VITE_API_TIMEOUT_MS ?? 15000),
-    // Headers fijos para todas las peticiones (p. ej. identificar la sede)
-    headers: {
-      "X-Branch-Id": env.VITE_BRANCH_ID ?? "suramericana",
-    },
+    // Sin headers fijos. La sede la decide el servidor: mandarla desde acá
+    // sería dejar que el navegador elija en qué sede agenda.
+    headers: {},
   },
 
   // true = no llama al backend, usa src/api/mocks

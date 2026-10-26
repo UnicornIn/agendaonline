@@ -1,29 +1,43 @@
-import { useBookingFlow } from "../useBookingFlow";
-import { DENSITY_OPTIONS } from "../../../data/diagnosis";
-import { requireFields } from "../../../lib/assert";
-import { Callout, Kicker, MediaCard, Sub, Title } from "../../../components/ui";
+import { useNavigate } from "react-router-dom";
+import { buscarServicio, densidadesDe, PISTA_DENSIDAD } from "../../../data/catalog";
+import { useApp } from "../../../context/AppContext";
+import { PATHS } from "../../../router/paths";
+import { Callout, Kicker, MediaCard, Sub, TitleHtml } from "../../../components/ui";
+import type { Densidad } from "../../../types";
 
+/**
+ * Paso 1 del diagnóstico: cuánto cabello hay.
+ *
+ * Solo se ofrecen las densidades que ESE servicio tiene en su matriz: ofrecer
+ * una sin fila daría un precio que no existe, y la clienta se enteraría al
+ * final.
+ */
 export default function DensityPage() {
-  const flow = useBookingFlow();
-  const booking = requireFields(flow.booking, ["svc"]);
-  const twoSteps = flow.catalog.services[booking.svc].diag === "full";
+  const navigate = useNavigate();
+  const { t, lang, reserva, actualizar } = useApp();
+  const s = buscarServicio(reserva.svc);
+
+  const elegir = (d: Densidad) => {
+    actualizar({ dens: d });
+    navigate(PATHS.plasticity);
+  };
 
   return (
     <>
-      <Kicker style={{ marginTop: 14 }}>Paso 1 de {twoSteps ? 2 : 1} · Tu cabello</Kicker>
-      <Title>¿Cuánto cabello<br />tienes?</Title>
-      <Sub>
-        A eso le decimos densidad: no es qué tan grueso es cada hilo, sino cuántos hilos tienes. Mira los videos y toca
-        el que se parezca al tuyo, suelto y seco.
-      </Sub>
+      <Kicker style={{ marginTop: 14 }}>{t("paso1")}</Kicker>
+      <TitleHtml html={t("densTitulo")} />
+      <Sub>{t("densSub")}</Sub>
       <div className="four">
-        {DENSITY_OPTIONS.map((o) => (
-          <MediaCard key={o.value} name={o.value} hint={o.hint} video={o.video} onClick={() => flow.setDensity(o.value)} />
+        {densidadesDe(s!).map((d) => (
+          <MediaCard
+            key={d}
+            name={d}
+            hint={PISTA_DENSIDAD[d][lang === "es" ? 0 : 1]}
+            onClick={() => elegir(d)}
+          />
         ))}
       </div>
-      <Callout>
-        Con esto calculamos tu valor exacto y cuánto tiempo reservamos de la agenda de tu estilista, para que nadie quede corriendo.
-      </Callout>
+      <Callout>{t("densNota")}</Callout>
     </>
   );
 }

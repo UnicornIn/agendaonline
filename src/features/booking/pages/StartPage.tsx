@@ -1,43 +1,44 @@
-import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { business } from "../../../config";
-import { useBooking } from "../../../context/BookingContext";
+import { useNavigate } from "react-router-dom";
+import { useApp, RESERVA_VACIA } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
-import { Button, Kicker, Note, Stack, Sub, Title } from "../../../components/ui";
+import { Button, Kicker, Note, Stack, Sub, TitleHtml } from "../../../components/ui";
+import { WhatsAppIcon } from "../../../components/ui/Icons";
 
-/** `state` que otras pantallas pueden mandar al navegar a la portada */
-export interface StartPageState {
-  /** Limpia la reserva en curso (p. ej. "Agendar otra cita") */
-  resetBooking?: boolean;
-}
-
+/**
+ * La portada: tres entradas al mismo sitio.
+ *
+ * "Ya soy cliente" es la primera porque es la que ahorra pasos: con el
+ * historial no se vuelve a preguntar el diagnóstico ni los datos. "Primera
+ * vez" empieza en blanco —sin historial ni diagnóstico heredado— para que una
+ * sesión anterior en el mismo navegador no le cuelgue a otra persona el
+ * cabello de quien agendó antes.
+ */
 export default function StartPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { reset } = useBooking();
-  const resetBooking = (location.state as StartPageState | null)?.resetBooking;
+  const { t, actualizar } = useApp();
 
-  useEffect(() => {
-    if (resetBooking) reset();
-  }, [resetBooking, reset]);
-
-  const waHref = `https://wa.me/${business.whatsapp}?text=${encodeURIComponent(
-    `Hola, quiero agendar una cita en la sede ${business.branch.name}.`
-  )}`;
+  const primeraVez = () => {
+    actualizar({ ...RESERVA_VACIA, modo: "nueva" });
+    navigate(PATHS.menu);
+  };
 
   return (
-    <div style={{ paddingTop: 42 }}>
-      <Kicker>Sede {business.branch.name} · {business.branch.city}</Kicker>
-      <Title>Agenda tu cita<br />en {business.brand}</Title>
-      <Sub>Elige cómo prefieres hacerlo. Las dos rutas llegan al mismo lugar: tu cita confirmada en Agenda RF.</Sub>
-      <Stack style={{ marginTop: 34 }}>
-        <Button size="big" onClick={() => navigate(PATHS.menu)}>Agendarme solo</Button>
-        {/* El agente atiende por WhatsApp */}
-        <a className="btn big ghost wa" href={waHref} target="_blank" rel="noopener noreferrer">
-          Hablar con el agente
-        </a>
+    <div style={{ paddingTop: 36 }}>
+      <Kicker>{t("sede")}</Kicker>
+      <TitleHtml html={t("tituloInicio")} />
+      <Sub>{t("intro")}</Sub>
+      <Stack style={{ marginTop: 26 }}>
+        <Button size="big" onClick={() => { actualizar({ modo: "cliente" }); navigate(PATHS.ident); }}>
+          {t("btnCliente")}
+        </Button>
+        <Button size="big" variant="ghost" onClick={primeraVez}>
+          {t("btnPrimera")}
+        </Button>
+        <Button size="big" variant="ghost" onClick={() => { actualizar({ modo: "agente" }); navigate(PATHS.chat); }}>
+          <WhatsAppIcon />{t("btnAgente")}
+        </Button>
       </Stack>
-      <Note style={{ marginTop: 26 }}>{business.hoursText}</Note>
+      <Note style={{ marginTop: 20 }}>{t("horario")}</Note>
     </div>
   );
 }

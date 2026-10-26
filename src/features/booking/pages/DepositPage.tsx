@@ -1,81 +1,180 @@
-import { useBookingFlow } from "../useBookingFlow";
-import { bookingsApi } from "../../../api";
-import { business } from "../../../config";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { comprobanteApi, revisarArchivo } from "../../../api/comprobante";
+import { ABONO, PAGOS } from "../../../data/catalog";
+import { useApp } from "../../../context/AppContext";
 import { useToast } from "../../../context/ToastContext";
 import { PATHS } from "../../../router/paths";
-import { money } from "../../../lib/format";
-import { prettyISO } from "../../../lib/dates";
-import { requireFields } from "../../../lib/assert";
-import { balanceText, computeTotal, depositFor, hasColor } from "../../../lib/pricing";
-import { Button, Callout, Label, Sticky, Sub, Title } from "../../../components/ui";
+import { calcularTotal, money, saldo } from "../../../lib/pricing";
+import { Button, Label, Sub, Title } from "../../../components/ui";
+
+/**
+ * El abono y el comprobante.
+ *
+ * Subir la foto es lo que confirma la cita: no hay un botón más después. La
+ * clienta paga, sube y queda agendada, que es lo que el flujo le prometió en
+ * la pantalla anterior.
+ *
+ * Por eso el orden es estricto: primero la foto llega al bucket, y solo con
+ * ella arriba se confirma la cita. Al revés quedaría una cita confirmada sin
+ * comprobante, y eso la sede lo lee como una clienta que no pagó.
+ *
+ * Si la subida falla NO se avanza: se muestra el error y se puede reintentar
+ * con la misma foto. Mandarla a "listo" con el comprobante perdido sería
+ * decirle que está confirmada cuando la sede no tiene con qué verificarla.
+ */
+type Estado =
+  | { fase: "vacio" }
+  | { fase: "subiendo"; nombre: string; url: string }
+  | { fase: "error"; nombre: string; url: string; archivo: File; mensaje: string };
 
 export default function DepositPage() {
-  const { catalog, navigate, ...flow } = useBookingFlow();
-  const booking = requireFields(flow.booking, ["svc", "opt", "date", "time"]);
+  const navigate = useNavigate();
   const toast = useToast();
-  const t = computeTotal(catalog, booking);
-  const deposit = depositFor(booking);
-  const when = `${prettyISO(booking.date)} a las ${booking.time.label}`;
+  const { t, reserva, actualizar } = useApp();
+  const total = calcularTotal(reserva);
 
-  const waMsg = `Hola, soy ${booking.name}. Envío el comprobante del abono de ${money(deposit)} para mi cita de ${t.labels.join(" + ")} el ${when} en la sede ${business.branch.name}.`;
-  const bookingText = `${t.labels.join(" + ")} · ${prettyISO(booking.date)} · ${booking.time.label} · ${t.price} · abono ${money(deposit)} · ${booking.name} · ${booking.phone} · Sede ${business.branch.name}`;
+  const [estado, setEstado] = useState<Estado>({ fase: "vacio" });
+  const urlRef = useRef<string | null>(null);
+  const vivo = useRef(true);
 
-  async function copy(text: string) {
+  useEffect(() => {
+    vivo.current = true;
+    return () => {
+      vivo.current = false;
+      // El blob de la miniatura se suelta al salir: cada foto que la clienta
+      // cambia quedaría retenida en memoria hasta recargar.
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    };
+  }, []);
+
+  function miniatura(f: File): string {
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    const url = URL.createObjectURL(f);
+    urlRef.current = url;
+    return url;
+  }
+
+  async function subir(f: File, url: string) {
+    setEstado({ fase: "subiendo", nombre: f.name, url });
     try {
-      await navigator.clipboard.writeText(text);
-      toast("Copiado");
+      const permiso = await comprobanteApi.permiso(f);
+      await comprobanteApi.subir(permiso, f);
+      const cita = await comprobanteApi.confirmar(permiso.clave, {
+        nombre: reserva.nombre,
+        celular: `${reserva.pais}${reserva.tel}`,
+        correo: reserva.correo,
+        servicio: reserva.svc,
+        extras: reserva.extras,
+        fecha: reserva.fecha,
+        hora: reserva.hora,
+        estilista: reserva.estilista,
+      });
+      if (!vivo.current) return;
+      actualizar({ comprobante: { nombre: f.name, url } });
+      navigate(PATHS.done, { replace: true, state: { citaId: cita.citaId } });
     } catch {
-      toast("No se pudo copiar al portapapeles.");
+      if (!vivo.current) return;
+      setEstado({ fase: "error", nombre: f.name, url, archivo: f, mensaje: t("errSubir") });
     }
   }
 
-  async function markSent() {
-    try {
-      if (booking.bookingId) await bookingsApi.markDepositSent(booking.bookingId);
-    } catch {
-      // No bloqueamos a la clienta: la sede verifica el comprobante por WhatsApp
-    }
-    navigate(PATHS.done);
+  function recibir(f: File) {
+    const problema = revisarArchivo(f);
+    if (problema) return toast(problema === "tipo" ? t("errTipo") : t("errPeso"));
+    void subir(f, miniatura(f));
   }
+
+  async function copiar(clave: keyof typeof PAGOS) {
+    try {
+      await navigator.clipboard.writeText(PAGOS[clave]);
+    } catch {
+      /* sin permiso de portapapeles: el dato igual está a la vista */
+    }
+    toast(t("copiado"));
+  }
+
+  const filas: Array<[titulo: string, prefijo: string, clave: keyof typeof PAGOS | null]> = [
+    [t("transferencia"), `${t("ahorros")} · `, "cuenta"],
+    [t("llave"), "", "llave"],
+    [t("linkPago"), "", null],
+  ];
 
   return (
     <>
-      <Title style={{ marginTop: 14 }}>Aparta tu cupo<br />con el abono</Title>
-      <Sub>Tu horario queda reservado cuando recibimos el comprobante. El abono se descuenta del valor del servicio.</Sub>
+      <Title style={{ marginTop: 14 }}>{t("abonoTitulo")}</Title>
+      <Sub>{t("abonoSub")}</Sub>
 
       <div className="amount">
-        <div className="lbl">Abono</div>
-        <div className="num">{money(deposit)}</div>
-        <div className="sub2">
-          {hasColor(booking) ? "Color tiene un abono de $90.000 por la separación de insumos." : "Aplica para todos los servicios."}{" "}
-          Pagas {balanceText(catalog, booking)} en el salón.
+        <div>
+          <div className="lbl">{t("abono")}</div>
+          <div className="num">{money(ABONO)}</div>
         </div>
+        <div className="rest">{t("pagasSalon", { "%s": saldo(reserva, t("elResto")) })}</div>
       </div>
 
-      <Label>Dónde hacerlo</Label>
+      <Label>{t("comoPagar")}</Label>
       <div className="pay">
-        {business.paymentMethods.map((m) => (
-          <div className="prow" key={m.id}>
+        {filas.map(([titulo, prefijo, clave]) => (
+          <div className="prow" key={titulo}>
             <div>
-              <div className="pm">{m.name}</div>
-              <div className="pd">{m.pending ? <span className="pend">{m.detail}</span> : m.detail}</div>
+              <div className="pm">{titulo}</div>
+              <div className="pd">
+                {prefijo}
+                <span className="pend">{clave ? PAGOS[clave] : PAGOS.link}</span>
+              </div>
             </div>
-            {m.copy && <button className="copy" onClick={() => copy(m.copy!)}>Copiar</button>}
+            {clave ? (
+              <Button variant="ghost" size="sm" onClick={() => copiar(clave)}>{t("copiar")}</Button>
+            ) : (
+              <Button variant="ghost" size="sm" onClick={() => toast(t("linkPago"))}>{t("abrirLink")}</Button>
+            )}
           </div>
         ))}
       </div>
 
-      <Label>Envía el comprobante</Label>
-      <Sub style={{ marginBottom: 14 }}>Mándanos el soporte por WhatsApp y te confirmamos la cita.</Sub>
-      <a className="btn wa" href={`https://wa.me/${business.whatsapp}?text=${encodeURIComponent(waMsg)}`} target="_blank" rel="noopener noreferrer">
-        Enviar comprobante por WhatsApp
-      </a>
-      <Button variant="ghost" style={{ marginTop: 10 }} onClick={() => copy(bookingText)}>Copiar los datos de mi cita</Button>
-      <Callout>{business.policies.reschedule}</Callout>
+      <Label>{t("subirTitulo")}</Label>
 
-      <Sticky>
-        <Button onClick={markSent}>Ya envié el comprobante</Button>
-      </Sticky>
+      {estado.fase === "vacio" ? (
+        <>
+          <label className="drop" htmlFor="i-file">
+            <div className="di">📷</div>
+            <div className="dt">{t("subirDrop")}</div>
+            <div className="ds">{t("subirHint")}</div>
+          </label>
+          <input
+            id="i-file" type="file" accept="image/*" style={{ display: "none" }}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              // Se limpia el input para que elegir la MISMA foto otra vez
+              // vuelva a disparar el change después de un error.
+              e.target.value = "";
+              if (f) recibir(f);
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <div className="thumb">
+            <img src={estado.url} alt="" />
+            <div>
+              <div className="tn">{estado.nombre}</div>
+              <div className="tm">
+                {estado.fase === "subiendo" ? t("subiendo") : estado.mensaje}
+              </div>
+            </div>
+          </div>
+          {estado.fase === "error" && (
+            <div className="stack" style={{ marginTop: 10 }}>
+              <Button onClick={() => void subir(estado.archivo, estado.url)}>{t("reintentar")}</Button>
+              <Button variant="ghost" onClick={() => setEstado({ fase: "vacio" })}>{t("cambiarFoto")}</Button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* El total queda a la vista mientras paga: es el número que va a comparar */}
+      <p className="note">{total.labels.join(" + ")} · {total.precio}</p>
     </>
   );
 }

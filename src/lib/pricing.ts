@@ -1,101 +1,116 @@
-import { business } from "../config";
-import { money, hhmm, parseMins } from "./format";
-import { must } from "./assert";
-import type {
-  Booking, BundleComparison, Catalog, ExtraSelection, PricedBooking, Service, ServiceKey, ServiceOption,
-} from "../types";
+import { ABONO, adicionalesDe, buscarServicio } from "../data/catalog";
+import type { Densidad, Plasticidad, Reserva, Resuelto, Servicio, Total } from "../types";
 
-/* Todas las funciones son puras: reciben el catálogo y el estado de la reserva. */
+/* =========================================================
+   Precio y tiempo
 
-type Diagnosis = Pick<Booking, "dens" | "easy">;
+   Funciones puras: reciben el catálogo ya resuelto y la reserva, y devuelven
+   números. No saben de pantallas ni de idioma, y por eso el mismo cálculo
+   sirve para el menú, el detalle, la confirmación y la ruta con agente.
 
-export interface ResolvedPrice {
-  price: string;
-  time: string;
-  mins: number;
-  /** Precio numérico exacto; null si solo hay rango */
-  n: number | null;
-  exact: boolean;
+   La regla que ordena todo: con diagnóstico el valor es EXACTO y sale de la
+   matriz; sin diagnóstico es un rango y se dice que es aproximado. Mostrar un
+   rango como si fuera el valor final es lo que termina en una discusión en la
+   caja del salón.
+   ========================================================= */
+
+export const money = (n: number): string => "$" + n.toLocaleString("es-CO");
+
+/** "$145.000" -> 145000. Devuelve null cuando es un rango o un texto. */
+export function aNumero(precio?: string): number | null {
+  const limpio = String(precio ?? "").replace(/\./g, "");
+  // Un rango ("$50.000 - $90.000") trae dos números: no es un valor, es un
+  // intervalo, y sumarlo a un total daría una cifra que nadie va a cobrar.
+  if ((limpio.match(/\d+/g) ?? []).length !== 1) return null;
+  const m = limpio.match(/\d+/);
+  return m ? Number(m[0]) : null;
 }
 
-export interface BookingTotal extends ResolvedPrice {
-  labels: string[];
+/** "2h 30min" -> 150. "+45 min" -> 45. "No agrega tiempo" -> null. */
+export function aMinutos(texto?: string): number | null {
+  if (!texto) return null;
+  const s = String(texto).toLowerCase();
+  const h = s.match(/(\d+)\s*h/)?.[1];
+  const m = s.match(/(\d+)\s*m/)?.[1];
+  const total = Number(h ?? 0) * 60 + Number(m ?? 0);
+  return total || null;
 }
 
-export const allOptions = (svc: Service): ServiceOption[] => [...(svc.options ?? []), ...(svc.easy ?? []), ...(svc.hard ?? [])];
-
-export const findOption = (catalog: Catalog, svcKey: ServiceKey, optId: string): ServiceOption | undefined =>
-  allOptions(catalog.services[svcKey]).find((o) => o.id === optId);
-
-/** Lista de opciones que aplica a un servicio según la plasticidad */
-export function optionsFor(catalog: Catalog, svcKey: ServiceKey, easy: boolean | null): ServiceOption[] {
-  const c = catalog.services[svcKey];
-  return (c.needsType ? (easy ? c.easy : c.hard) : c.options) ?? [];
+export function hhmm(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const r = mins % 60;
+  // Varios servicios bajan de la hora: "0h 40min" se lee como un error de la
+  // página, no como cuarenta minutos.
+  if (!h) return `${r} min`;
+  return r ? `${h}h ${r}min` : `${h}h`;
 }
 
-export const fullOptionFor = (catalog: Catalog, easy: boolean | null): ServiceOption => {
-  const full = catalog.services.full;
-  return must((easy === false ? full.hard : full.easy)?.[0], "El catálogo no tiene Servicio Full");
-};
+/**
+ * El precio y el tiempo de un servicio para un diagnóstico dado.
+ *
+ * Sin diagnóstico —o con uno que su matriz no cubre— cae al rango del
+ * catálogo y marca `exacto: false`, que es lo que las pantallas usan para
+ * decir "duración aproximada" en vez de "tu valor".
+ */
+export function resolver(
+  s: Servicio | undefined,
+  dens: Densidad | null,
+  plast: Plasticidad | null
+): Resuelto {
+  if (!s) return { precio: "", n: null, mins: null, exacto: false };
 
-/** Precio y tiempo exactos si hay diagnóstico; si no, el rango del catálogo */
-export function resolveOption(catalog: Catalog, opt: ServiceOption, { dens, easy }: Diagnosis): ResolvedPrice {
-  const m = catalog.matrix[opt.id];
-  const i = dens ? catalog.densities.indexOf(dens) : -1;
-  const row = m && (easy === false && m.hard ? m.hard : m.easy ?? m.hard);
-  if (row && i >= 0) {
-    const [n, mins] = row[i];
-    return { price: money(n), time: hhmm(mins), mins, n, exact: true };
+  if (s.matriz && dens && plast) {
+    const fila = s.matriz.find((r) => r.d === dens);
+    if (fila) {
+      const precio = plast === "pa" ? fila.pa : fila.pb;
+      const tiempo = plast === "pa" ? fila.ta : fila.tb;
+      // "N/A" es una combinación que la casa no presta, no un precio.
+      if (precio && precio.toUpperCase() !== "N/A") {
+        return { precio, n: aNumero(precio), mins: aMinutos(tiempo), exacto: true };
+      }
+    }
   }
-  return { price: opt.price, time: opt.time, mins: parseMins(opt.time || "2h"), n: null, exact: false };
+  return { precio: s.precio ?? "", n: null, mins: aMinutos(s.tiempo), exacto: false };
 }
 
-/** "DEF" = definición detallada según plasticidad */
-export const resolveExtraId = (id: string, easy: boolean | null): string =>
-  id === "DEF" ? (easy === false ? "def-det-h" : "def-det") : id;
+type ParaCobrar = Pick<Reserva, "svc" | "dens" | "plast" | "extras">;
 
-export const hasExtra = (booking: Pick<Booking, "extras" | "easy">, svcKey: ServiceKey, id: string): boolean =>
-  booking.extras.some((e) => e.k === svcKey && e.id === resolveExtraId(id, booking.easy));
+/**
+ * El total del bloque: el servicio principal más cada adicional.
+ *
+ * Un adicional con precio en rango vuelve `exacto` falso para todo el bloque.
+ * Es deliberado: el total de una suma donde un sumando es un intervalo
+ * también es un intervalo, y presentarlo como cifra cerrada sería inventarlo.
+ */
+export function calcularTotal(reserva: ParaCobrar): Total {
+  const s = buscarServicio(reserva.svc);
+  const base = resolver(s, reserva.dens, reserva.plast);
 
-export function toggleExtra(booking: Pick<Booking, "extras" | "easy">, svcKey: ServiceKey, id: string): ExtraSelection[] {
-  const rid = resolveExtraId(id, booking.easy);
-  const exists = booking.extras.some((e) => e.k === svcKey && e.id === rid);
-  return exists
-    ? booking.extras.filter((e) => !(e.k === svcKey && e.id === rid))
-    : [...booking.extras, { k: svcKey, id: rid }];
-}
+  let n = base.n;
+  let mins = base.mins ?? 0;
+  let exacto = base.exacto;
+  const labels = s ? [s.nombre] : [];
 
-/** Total del bloque: servicio principal + complementos */
-export function computeTotal(catalog: Catalog, booking: PricedBooking): BookingTotal {
-  let { n, mins, exact } = resolveOption(catalog, booking.opt, booking);
-  const labels = [booking.opt.label];
-  for (const e of booking.extras) {
-    const o = findOption(catalog, e.k, e.id);
-    if (!o) continue;
-    const r = resolveOption(catalog, o, booking);
-    labels.push(o.label);
-    mins += r.mins;
-    if (r.n != null && n != null) n += r.n;
-    else exact = false;
+  for (const nombre of reserva.extras) {
+    const a = adicionalesDe(s).find((x) => x.n === nombre);
+    if (!a) continue;
+    labels.push(a.n);
+    const precio = aNumero(a.p);
+    if (precio != null && n != null) n += precio;
+    else if (precio == null) exacto = false;
+    mins += aMinutos(a.t) ?? 0;
   }
-  return { n, mins, exact, time: hhmm(mins), price: exact && n != null ? money(n) : "por confirmar", labels };
+
+  return {
+    n, mins, exacto,
+    precio: n != null ? money(n) : base.precio || "—",
+    tiempo: mins ? hhmm(mins) : "",
+    labels,
+  };
 }
 
-export const hasColor = (b: Pick<Booking, "svc" | "extras">): boolean =>
-  b.svc === "color" || b.extras.some((e) => e.k === "color");
-
-export const depositFor = (b: Pick<Booking, "svc" | "extras">): number =>
-  hasColor(b) ? business.deposit.color : business.deposit.default;
-
-export function balanceText(catalog: Catalog, b: PricedBooking): string {
-  const t = computeTotal(catalog, b);
-  return t.exact && t.n != null ? money(t.n - depositFor(b)) : "el resto del valor";
+/** Lo que queda por pagar en el salón después del abono */
+export function saldo(reserva: ParaCobrar, textoSiNoExacto: string): string {
+  const t = calcularTotal(reserva);
+  return t.n != null ? money(t.n - ABONO) : textoSiNoExacto;
 }
-
-/** Comparativo "por separado vs Full" */
-export function bundleInfo(catalog: Catalog, easy: boolean | null): BundleComparison & { full: ServiceOption } {
-  const b = easy === false ? catalog.bundle.hard : catalog.bundle.easy;
-  return { full: fullOptionFor(catalog, easy), ...b };
-}
-
-export const plasticityText = (easy: boolean | null): string => (easy ? "se forma solo" : "necesita ayuda");

@@ -4,16 +4,18 @@
  */
 export const PATHS = {
   start: "/",
+  ident: "/entrar",
+  historial: "/mi-historial",
   menu: "/servicios",
   density: "/diagnostico/densidad",
   plasticity: "/diagnostico/plasticidad",
-  options: "/opciones",
   detail: "/detalle",
-  addons: "/complementos",
+  extras: "/adicionales",
   date: "/fecha",
   confirm: "/confirmar",
   deposit: "/abono",
   done: "/listo",
+  chat: "/agente",
 } as const;
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];

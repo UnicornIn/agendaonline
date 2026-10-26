@@ -1,136 +1,126 @@
 /* =========================================================
-   Tipos de dominio compartidos por toda la app
+   Tipos de dominio del autoagendamiento
+
+   El catálogo es la fuente de todo: de él salen el precio, el tiempo, si hay
+   que preguntar el diagnóstico y qué adicionales se ofrecen. Ver
+   src/data/catalog.ts.
    ========================================================= */
 
-/** Clave de servicio ("corte", "full"...). Es string para que el catálogo pueda crecer desde el backend. */
-export type ServiceKey = string;
+export type Lang = "es" | "en";
 
-export type Density = "Baja" | "Media" | "Alta" | "Extra alta";
+/** Las densidades que el catálogo usa como escalones de precio */
+export type Densidad = "Baja" | "Media" | "Alta" | "Extra alta";
 
-export interface ServiceOption {
+/**
+ * Plasticidad: `pa` = el rizo se forma solo · `pb` = necesita ayuda.
+ *
+ * Son dos servicios distintos en la agenda, no una preferencia: un COMPLETO
+ * MEDIA P.A son 2h y P.B son 2h 30min, con precios distintos.
+ */
+export type Plasticidad = "pa" | "pb";
+
+/** Una fila de la matriz: el mismo servicio a una densidad, por plasticidad */
+export interface FilaMatriz {
+  d: Densidad;
+  /** Precio con plasticidad alta. "N/A" = esa combinación no se presta */
+  pa: string;
+  pb?: string;
+  /** Duración con plasticidad alta */
+  ta?: string;
+  tb?: string;
+}
+
+export interface Adicional {
+  n: string;
+  p?: string;
+  /** "+30 min", "No agrega tiempo" */
+  t?: string;
+}
+
+export interface Servicio {
   id: string;
-  label: string;
-  /** Rango de precio del catálogo, p. ej. "$60.000–$110.000" */
-  price: string;
-  /** Duración aproximada, p. ej. "1h 30min" */
-  time: string;
+  grupo: string;
+  /** Orden dentro del grupo */
+  orden: number;
+  nombre: string;
+  /** Rango del catálogo, p. ej. "$145.000 – $210.000" */
+  precio?: string;
+  /** Duración fija, para los servicios sin matriz */
+  tiempo?: string;
   desc?: string;
-  includes: string[];
-  note?: string;
+  /** Lo que incluye, separado por comas */
+  incluye?: string;
+  nota?: string;
+  /**
+   * Los escalones por densidad y plasticidad. Un servicio CON matriz pide
+   * diagnóstico; uno sin ella tiene precio y tiempo fijos.
+   */
+  matriz?: FilaMatriz[];
+  adicionales?: Adicional[];
 }
 
-export interface Service {
-  name: string;
-  from: string;
-  /** "full" = densidad + plasticidad · "dens" = solo densidad · sin valor = sin diagnóstico */
-  diag?: "full" | "dens";
-  /** Las opciones dependen de la plasticidad (easy / hard) */
-  needsType?: boolean;
-  needsColor?: boolean;
-  options?: ServiceOption[];
-  easy?: ServiceOption[];
-  hard?: ServiceOption[];
+/** Precio y tiempo ya resueltos para un diagnóstico concreto */
+export interface Resuelto {
+  precio: string;
+  /** Precio numérico exacto; null si solo hay rango */
+  n: number | null;
+  mins: number | null;
+  /** true = salió de la matriz con el diagnóstico, no del rango */
+  exacto: boolean;
 }
 
-/** [precio en COP, minutos] por cada densidad, en el orden de Catalog.densities */
-export type MatrixRow = Array<[price: number, minutes: number]>;
-
-export interface BundleComparison {
-  separatePrice: string;
-  separateTime: string;
+/** El total del bloque: servicio principal + adicionales */
+export interface Total extends Resuelto {
+  tiempo: string;
+  /** Los nombres que componen el bloque, para "Full + Ozonoterapia" */
+  labels: string[];
 }
 
-/** [servicio, id de opción | "DEF"] */
-export type ExtraRef = [svc: ServiceKey, optionId: string];
+/* ---------- La reserva en curso ---------- */
 
-export interface Catalog {
-  services: Record<ServiceKey, Service>;
-  order: ServiceKey[];
-  densities: Density[];
-  matrix: Record<string, { easy?: MatrixRow; hard?: MatrixRow }>;
-  extras: Record<ServiceKey, ExtraRef[]>;
-  bundle: { easy: BundleComparison; hard: BundleComparison };
-}
+export type Modo = "cliente" | "nueva" | "agente";
 
-/* ---------- Reserva ---------- */
-
-export interface ExtraSelection {
-  k: ServiceKey;
-  id: string;
-}
-
-export interface TimeSlot {
-  label: string;
-  /** Minutos desde medianoche */
-  start: number;
-}
-
-export interface AvailabilitySlot extends TimeSlot {
-  available: boolean;
-}
-
-export interface Booking {
-  svc: ServiceKey | null;
-  dens: Density | null;
-  /** true = el rizo se forma solo · false = necesita ayuda · null = sin diagnóstico */
-  easy: boolean | null;
-  opt: ServiceOption | null;
-  extras: ExtraSelection[];
+export interface Reserva {
+  modo: Modo | null;
+  /** Por dónde se identificó */
+  via: "tel" | "mail";
+  /** Indicativo con "+", p. ej. "+57" */
+  pais: string;
+  tel: string;
+  correo: string;
+  nombre: string;
+  svc: string | null;
+  dens: Densidad | null;
+  plast: Plasticidad | null;
+  /** Nombres de los adicionales elegidos, como vienen del catálogo */
+  extras: string[];
+  /** null = la asigna el salón */
+  estilista: string | null;
   /** YYYY-MM-DD */
-  date: string | null;
-  time: TimeSlot | null;
-  name: string;
-  phone: string;
-  bookingId: string | null;
+  fecha: string | null;
+  /** "10:30 am" */
+  hora: string | null;
+  /** true = viene de repetir un servicio del historial */
+  repite: boolean;
+  comprobante: { nombre: string; url: string } | null;
 }
 
-/** Hace obligatorios (no nulos) los campos K de T */
-export type WithRequired<T, K extends keyof T> = T & { [P in K]-?: NonNullable<T[P]> };
+/* ---------- La clienta que vuelve ---------- */
 
-/** Lo mínimo para calcular precio y tiempo */
-export type PricedBooking = Pick<Booking, "svc" | "dens" | "easy" | "extras"> & { opt: ServiceOption };
-
-/** Reserva lista para enviarse al backend */
-export type ScheduledBooking = WithRequired<Booking, "svc" | "opt" | "date" | "time">;
-
-export interface Contact {
-  name: string;
-  phone: string;
+export interface ServicioPasado {
+  /** id del catálogo */
+  svc: string;
+  /** Ya formateada: "12 de agosto de 2026" */
+  fecha: string;
+  extras: string[];
 }
 
-export interface DensityOption {
-  value: Density;
-  hint: string;
-  /** URL del video demostrativo; null = placeholder */
-  video: string | null;
-}
-
-export interface PlasticityOption {
-  value: boolean;
-  name: string;
-  hint: string;
-  video: string | null;
-}
-
-/* ---------- API ---------- */
-
-export interface BookingPayload {
-  branchId: string;
-  channel: "web";
-  service: { key: ServiceKey; optionId: string };
-  extras: Array<{ key: ServiceKey; optionId: string }>;
-  diagnosis: { density: Density; selfForming: boolean | null } | null;
-  date: string;
-  startMinutes: number;
-  durationMinutes: number;
-  price: number | null;
-  deposit: number;
-  customer: Contact;
-}
-
-export type BookingStatus = "pending_deposit" | "deposit_sent" | "confirmed" | "cancelled";
-
-export interface CreatedBooking {
-  id: string;
-  status: BookingStatus;
+export interface Historial {
+  nombre: string;
+  estilista: string;
+  visitas: number;
+  dens: Densidad | null;
+  plast: Plasticidad | null;
+  correo: string;
+  servicios: ServicioPasado[];
 }
