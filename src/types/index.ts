@@ -12,7 +12,7 @@ export type Lang = "es" | "en";
 export type Densidad = "Baja" | "Media" | "Alta" | "Extra alta";
 
 /**
- * Plasticidad: `pa` = el rizo se forma solo · `pb` = necesita ayuda.
+ * Plasticidad: `pa` = el rizo se forma fácil al definirlo · `pb` = le cuesta.
  *
  * Son dos servicios distintos en la agenda, no una preferencia: un COMPLETO
  * MEDIA P.A son 2h y P.B son 2h 30min, con precios distintos.

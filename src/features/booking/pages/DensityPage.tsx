@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { buscarServicio, densidadesDe, PISTA_DENSIDAD } from "../../../data/catalog";
+import { FOTO_DENSIDAD } from "../../../data/fotos";
 import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
 import { Callout, Kicker, MediaCard, Sub, TitleHtml } from "../../../components/ui";
@@ -32,6 +33,7 @@ export default function DensityPage() {
           <MediaCard
             key={d}
             name={d}
+            foto={FOTO_DENSIDAD[d]}
             hint={PISTA_DENSIDAD[d][lang === "es" ? 0 : 1]}
             onClick={() => elegir(d)}
           />

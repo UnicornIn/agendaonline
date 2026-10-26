@@ -91,17 +91,31 @@ export const SummaryTable = ({ rows }: { rows: Array<SummaryRow | false | null |
 );
 
 /* ---------- Tarjetas ---------- */
-export const Media = ({ video }: { video?: string | null }) => (
-  <span className="media">
-    {video ? <video src={video} muted loop playsInline autoPlay /> : <PlayIcon />}
+/**
+ * El recuadro de una tarjeta de diagnóstico: foto, video o el marcador.
+ *
+ * `lleno` apaga el brillo que barre el marcador. Ese brillo dice "acá va a
+ * haber algo"; encima de una foto real parece un reflejo y estorba justo
+ * cuando la clienta está comparando su cabello con la imagen.
+ *
+ * La foto va con `alt=""`: el nombre y la pista de la tarjeta ya dicen lo que
+ * la foto muestra, y repetirlo hace que un lector de pantalla lea la opción
+ * dos veces.
+ */
+export const Media = ({ foto, video }: { foto?: string | null; video?: string | null }) => (
+  <span className={`media${foto || video ? " lleno" : ""}`}>
+    {video ? <video src={video} muted loop playsInline autoPlay />
+      : foto ? <img src={foto} alt="" loading="lazy" decoding="async" />
+      : <PlayIcon />}
   </span>
 );
 
-export const MediaCard = ({ name, hint, video, disabled, onClick }: {
-  name: string; hint?: string; video?: string | null; disabled?: boolean; onClick: () => void;
+export const MediaCard = ({ name, hint, foto, video, disabled, onClick }: {
+  name: string; hint?: string; foto?: string | null; video?: string | null;
+  disabled?: boolean; onClick: () => void;
 }) => (
   <button className="card" disabled={disabled} onClick={onClick}>
-    <Media video={video} />
+    <Media foto={foto} video={video} />
     <span className="name">{name}</span>
     {hint && <span className="hint">{hint}</span>}
   </button>

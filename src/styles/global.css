@@ -132,14 +132,20 @@ h1,h2,h3{font-family:"Antonio",sans-serif;font-weight:600;letter-spacing:.01em;m
 .card:active{transform:scale(.96)}
 .card:hover{border-color:var(--ink)}
 .card[disabled]{opacity:.35;cursor:not-allowed}
-.media{aspect-ratio:4/3;border-radius:11px;background:var(--media);margin-bottom:8px;position:relative;overflow:hidden;display:grid;place-items:center}
-.two .media{aspect-ratio:3/4}
-.media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.media::after{
+/* Vertical en los dos casos: son fotos de una cabeza de espaldas, y en
+   horizontal el recorte se come la coronilla, que es donde se ve si hay
+   cuero cabelludo a la vista. */
+.media{aspect-ratio:3/4;border-radius:11px;background:var(--media);margin-bottom:8px;position:relative;overflow:hidden;display:grid;place-items:center}
+.media video,.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* El brillo solo sobre el marcador: encima de una foto parece un reflejo. */
+.media:not(.lleno)::after{
   content:"";position:absolute;inset:0;
   background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.24) 50%,transparent 70%);
   transform:translateX(-100%);animation:sh 3.4s infinite;
 }
+/* Las fotos vienen sobre fondo blanco; en modo oscuro se bajan un punto para
+   que no queden como cinco lámparas en una pantalla negra. */
+@media (prefers-color-scheme:dark){.media img{filter:brightness(.88)}}
 @keyframes sh{0%,55%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 .play{width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.14);display:grid;place-items:center;position:relative;z-index:1}
 .card .name{font-family:"Antonio",sans-serif;font-size:16px;line-height:1.1;display:block}

@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { buscarServicio, plasticidadDisponible } from "../../../data/catalog";
+import { FOTO_PLASTICIDAD } from "../../../data/fotos";
 import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
 import { Callout, Kicker, MediaCard, Sub, TitleHtml } from "../../../components/ui";
 import type { Plasticidad } from "../../../types";
 
 /**
- * Paso 2 del diagnóstico: si el rizo se forma solo.
+ * Paso 2 del diagnóstico: qué tanto le cuesta formarse al rizo.
  *
  * Una plasticidad que el servicio no presta se muestra desactivada en vez de
  * esconderse: que exista y no aplique es información —"definición sencilla no
@@ -33,8 +34,14 @@ export default function PlasticityPage() {
       <TitleHtml html={t("plastTitulo")} />
       <Sub>{t("plastSub")}</Sub>
       <div className="two">
-        <MediaCard name={t("soloSe")} hint={t("soloSeH")} disabled={!hayPa} onClick={() => elegir("pa")} />
-        <MediaCard name={t("ayuda")} hint={t("ayudaH")} disabled={!hayPb} onClick={() => elegir("pb")} />
+        <MediaCard
+          name={t("soloSe")} hint={t("soloSeH")} foto={FOTO_PLASTICIDAD.pa}
+          disabled={!hayPa} onClick={() => elegir("pa")}
+        />
+        <MediaCard
+          name={t("ayuda")} hint={t("ayudaH")} foto={FOTO_PLASTICIDAD.pb}
+          disabled={!hayPb} onClick={() => elegir("pb")}
+        />
       </div>
       <Callout>{!hayPa || !hayPb ? s.nota ?? t("dudas") : t("dudas")}</Callout>
     </>
