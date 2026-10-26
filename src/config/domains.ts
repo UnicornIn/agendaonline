@@ -16,8 +16,11 @@ export interface DomainConfig {
 export const DOMAINS: Record<string, DomainConfig> = {
   localhost: { apiBaseUrl: "", env: "development" },
   "127.0.0.1": { apiBaseUrl: "", env: "development" },
-  "staging.agenda.rizosfelices.co": { apiBaseUrl: "https://api-staging.rizosfelices.co", env: "staging" },
-  "agenda.rizosfelices.co": { apiBaseUrl: "https://api.rizosfelices.co", env: "production" },
+  // Espejo de `.env.production`, que es quien manda en el build. Esto es la
+  // red de abajo: un dominio que no esté acá cae en `localhost`, o sea
+  // `apiBaseUrl: ""`, y pide el API contra sí mismo. Todo responde 404 y nada
+  // en la pantalla dice por qué.
+  "citas.rizosfelices.co": { apiBaseUrl: "https://previewapi.rizosfelices.co", env: "production" },
 };
 
 export function resolveDomain(hostname: string = globalThis.location?.hostname ?? "localhost"): DomainConfig {

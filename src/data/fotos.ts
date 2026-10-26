@@ -3,6 +3,7 @@ import type { Densidad, Plasticidad } from "../types";
 import densidadBaja from "../assets/diagnostico/densidad-baja.webp";
 import densidadMedia from "../assets/diagnostico/densidad-media.webp";
 import densidadAlta from "../assets/diagnostico/densidad-alta.webp";
+import densidadExtraAlta from "../assets/diagnostico/densidad-extra-alta.webp";
 import plasticidadPa from "../assets/diagnostico/plasticidad-pa.webp";
 import plasticidadPb from "../assets/diagnostico/plasticidad-pb.webp";
 
@@ -29,11 +30,15 @@ import plasticidadPb from "../assets/diagnostico/plasticidad-pb.webp";
  * segundo paso del agendamiento y casi siempre se abre con datos móviles.
  */
 
-/** No todas tienen foto: "Extra alta" todavía no llegó y cae al marcador. */
+/**
+ * `Partial` a propósito: si mañana el catálogo estrena una densidad, la
+ * tarjeta cae al marcador en vez de romper el paso 1 del diagnóstico.
+ */
 export const FOTO_DENSIDAD: Partial<Record<Densidad, string>> = {
   "Baja": densidadBaja,
   "Media": densidadMedia,
   "Alta": densidadAlta,
+  "Extra alta": densidadExtraAlta,
 };
 
 export const FOTO_PLASTICIDAD: Record<Plasticidad, string> = {
