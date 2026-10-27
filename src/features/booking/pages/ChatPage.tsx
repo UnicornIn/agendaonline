@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { buscarPorTexto } from "../../../api/clientes";
+import { agendaApi } from "../../../api/agenda";
+import { buscarHistorial } from "../../../api/clientes";
 import {
   ABONO, adicionalesDe, buscarServicio, densidadesDe, ETIQUETA_GRUPO,
   NOTA_GRUPO, ORDEN_GRUPOS, plasticidadDisponible, serviciosDelGrupo,
@@ -9,7 +10,7 @@ import { useApp } from "../../../context/AppContext";
 import { useHistorial } from "../useHistorial";
 import { PATHS } from "../../../router/paths";
 import { calcularTotal, hhmm, money, resolver, saldo } from "../../../lib/pricing";
-import { aISO, fechaISOBonita, horasLibres, proximosDias } from "../../../lib/dates";
+import { aISO, fechaISOBonita, proximosDias } from "../../../lib/dates";
 import { isFullName } from "../../../lib/validation";
 import type { Densidad, Reserva } from "../../../types";
 
@@ -79,7 +80,7 @@ export default function ChatPage() {
           al: () => {
             decirYo(fechaISOBonita(aISO(d), lang));
             sincronizar({ fecha: aISO(d) });
-            pedirHora();
+            void pedirHora();
           },
         }))
       );
@@ -87,9 +88,29 @@ export default function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decir, t, lang, sincronizar]);
 
-  const pedirHora = useCallback(() => {
+  /**
+   * Las horas las sabe la agenda, no el navegador.
+   *
+   * Dependen del horario de cada profesional, de sus bloqueos, de las citas
+   * que ya tiene y de las retenciones de otras clientas. Ninguna de esas
+   * cuatro cosas se puede calcular acá.
+   */
+  const pedirHora = useCallback(async () => {
     const total = calcularTotal(r.current);
-    const libres = horasLibres(r.current.fecha!, total.mins ?? 0, r.current.estilista);
+    let libres: string[] = [];
+    try {
+      const resp = await agendaApi.disponibilidad(
+        r.current.fecha!,
+        total.servicioIds,
+        r.current.estilistaId
+      );
+      libres = resp.cupos.map((c) => c.hora);
+    } catch {
+      // Una caída se cuenta como "ese día no hay" y se vuelve a ofrecer el
+      // calendario: en un chat, un mensaje de error técnico no deja a nadie
+      // más cerca de su cita.
+      libres = [];
+    }
     if (!libres.length) return decir(t("chatSinCupo"), pedirDia);
     decir(t("chatHoras"), () => {
       setOpciones(
@@ -263,11 +284,23 @@ export default function ChatPage() {
     decir(t("chatPideId"), () => setCampos("id"));
   }
 
-  async function identificar(valor: string) {
-    decirYo(valor);
+  /**
+   * Nombre Y celular, no uno de los dos.
+   *
+   * El backend no entrega un historial a cambio de un celular suelto: eso
+   * sería un oráculo para averiguar, probando números, quién es clienta de
+   * Rizos y qué se hace en el pelo.
+   */
+  async function identificar(nombre: string, tel: string) {
+    decirYo(`${nombre} · ${tel}`);
     setCampos(null);
-    const h = await buscarPorTexto(valor);
-    if (!h) return decir(t("chatSinHist"), pedirServicio);
+    sincronizar({ nombre, tel });
+    const h = await buscarHistorial({
+      nombre,
+      pais: r.current.pais || "+57",
+      tel,
+    }).catch(() => null);
+    if (!h || !h.servicios.length) return decir(t("chatSinHist"), pedirServicio);
 
     guardar(h);
     sincronizar({
@@ -304,7 +337,15 @@ export default function ChatPage() {
       </div>
 
       <div className="quick">
-        {campos === "id" && <CampoUnico placeholder={t("chatIdPlaceholder")} cta={t("chatBuscar")} onEnviar={identificar} />}
+        {campos === "id" && (
+          <CamposDatos
+            labelNombre={t("nombreCompleto")}
+            labelCelular={t("celular")}
+            cta={t("chatBuscar")}
+            telInicial={r.current.tel}
+            onEnviar={(nombre, tel) => void identificar(nombre, tel)}
+          />
+        )}
         {campos === "datos" && (
           <CamposDatos
             labelNombre={t("nombreCompleto")}
@@ -326,25 +367,6 @@ export default function ChatPage() {
         ))}
       </div>
     </div>
-  );
-}
-
-function CampoUnico({ placeholder, cta, onEnviar }: {
-  placeholder: string; cta: string; onEnviar: (v: string) => void;
-}) {
-  const [valor, setValor] = useState("");
-  const enviar = () => valor.trim() && onEnviar(valor.trim());
-  return (
-    <>
-      <div className="field">
-        <input
-          autoFocus placeholder={placeholder} value={valor}
-          onChange={(e) => setValor(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && enviar()}
-        />
-      </div>
-      <button className="chip primary" onClick={enviar}>{cta}</button>
-    </>
   );
 }
 

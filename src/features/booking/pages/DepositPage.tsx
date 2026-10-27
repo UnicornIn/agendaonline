@@ -60,15 +60,19 @@ export default function DepositPage() {
     try {
       const permiso = await comprobanteApi.permiso(f);
       await comprobanteApi.subir(permiso, f);
+      // El contrato del backend: el cupo apartado y los `servicio_id` reales
+      // del bloque. La fecha, la hora y a quién le toca ya viven en la
+      // retención, así que mandarlos otra vez sería darle al navegador la
+      // última palabra sobre un cupo que el servidor ya reservó.
       const cita = await comprobanteApi.confirmar(permiso.clave, {
-        nombre: reserva.nombre,
-        celular: `${reserva.pais}${reserva.tel}`,
-        correo: reserva.correo,
-        servicio: reserva.svc,
-        extras: reserva.extras,
-        fecha: reserva.fecha,
-        hora: reserva.hora,
-        estilista: reserva.estilista,
+        retencionId: reserva.retencionId!,
+        servicioIds: total.servicioIds,
+        contacto: {
+          nombre: reserva.nombre,
+          // Sin el "+": así los guarda la agenda.
+          celular: `${reserva.pais}${reserva.tel}`.replace("+", ""),
+          correo: reserva.correo || null,
+        },
       });
       if (!vivo.current) return;
       actualizar({ comprobante: { nombre: f.name, url } });

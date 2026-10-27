@@ -5,6 +5,7 @@ import { useApp } from "../../context/AppContext";
 import { ToastProvider } from "../../context/ToastContext";
 import { MAX_STEP, PATHS, type RouteHandle } from "../../router/paths";
 import { BackIcon } from "../ui/Icons";
+import CargaCatalogo from "../../features/booking/CargaCatalogo";
 
 /**
  * El marco: nav con atrás e idioma, barra de progreso, y la pantalla activa.
@@ -47,15 +48,22 @@ export default function AppLayout() {
           <div className="progress">
             <i style={{ width: `${(step / MAX_STEP) * 100}%` }} />
           </div>
-          <main className="screens">
-            <section
-              key={location.pathname}
-              className={`screen active${navType === "POP" ? " back-anim" : ""}`}
-              onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 6)}
-            >
-              <Outlet />
-            </section>
-          </main>
+          {/* La puerta envuelve el <main> y NO la sección de adentro.
+              Esa sección lleva `key={pathname}` para animar cada paso, así que
+              React la desmonta y la vuelve a montar en cada navegación — y una
+              puerta ahí dentro volvería a pedir el catálogo en cada pantalla.
+              Acá se monta una vez y se pide una vez. */}
+          <CargaCatalogo>
+            <main className="screens">
+              <section
+                key={location.pathname}
+                className={`screen active${navType === "POP" ? " back-anim" : ""}`}
+                onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 6)}
+              >
+                <Outlet />
+              </section>
+            </main>
+          </CargaCatalogo>
         </ToastProvider>
       </div>
     </div>

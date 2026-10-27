@@ -1,4 +1,5 @@
 import { config } from "../config";
+import { agendaApi, type Contacto } from "./agenda";
 import { http } from "./httpClient";
 
 /* =========================================================
@@ -37,7 +38,9 @@ export interface PermisoDeSubida {
 
 export interface CitaConfirmada {
   citaId: string;
-  estado: string;
+  /** Lo decide el backend —nace `pre_reservada` y la sede la confirma al
+   *  registrar el pago—, así que la web no cuenta con que venga. */
+  estado?: string;
 }
 
 /** Qué tiene de malo el archivo, o null si sirve */
@@ -67,6 +70,14 @@ const mock = {
     return { citaId: "RF-" + Date.now().toString(36).toUpperCase(), estado: "confirmada" };
   },
 };
+
+/** Lo que `POST /cita` necesita, aparte del comprobante. */
+export interface DatosDeCita {
+  retencionId: string;
+  servicioIds: string[];
+  contacto: Contacto;
+  notas?: string | null;
+}
 
 /* ---------- el camino real ---------- */
 
@@ -101,9 +112,12 @@ export const comprobanteApi = {
    * El orden importa: primero la foto, después la cita. Al revés quedaría una
    * cita confirmada sin comprobante si la subida falla, y eso la sede lo lee
    * como una clienta que no pagó.
+   *
+   * `retencionId` no es opcional: es el cupo que se apartó al confirmar, y el
+   * backend lo exige. Sin él la cita no se escribe aunque todo lo demás esté.
    */
-  confirmar: (clave: string, datos: Record<string, unknown>): Promise<CitaConfirmada> =>
+  confirmar: (clave: string, datos: DatosDeCita): Promise<CitaConfirmada> =>
     config.useMocks
       ? mock.confirmar()
-      : http.post<CitaConfirmada>("/cita", { ...datos, comprobante: clave }),
+      : agendaApi.crearCita({ ...datos, comprobante: clave }),
 };

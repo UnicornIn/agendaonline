@@ -57,20 +57,36 @@ export function resolver(
   dens: Densidad | null,
   plast: Plasticidad | null
 ): Resuelto {
-  if (!s) return { precio: "", n: null, mins: null, exacto: false };
+  if (!s) return { precio: "", n: null, mins: null, exacto: false, servicioId: null };
 
   if (s.matriz && dens && plast) {
     const fila = s.matriz.find((r) => r.d === dens);
     if (fila) {
       const precio = plast === "pa" ? fila.pa : fila.pb;
       const tiempo = plast === "pa" ? fila.ta : fila.tb;
+      const servicioId = plast === "pa" ? fila.idA : fila.idB;
       // "N/A" es una combinación que la casa no presta, no un precio.
       if (precio && precio.toUpperCase() !== "N/A") {
-        return { precio, n: aNumero(precio), mins: aMinutos(tiempo), exacto: true };
+        return {
+          precio,
+          n: aNumero(precio),
+          mins: aMinutos(tiempo),
+          exacto: true,
+          servicioId: servicioId ?? null,
+        };
       }
     }
   }
-  return { precio: s.precio ?? "", n: null, mins: aMinutos(s.tiempo), exacto: false };
+  // Sin diagnóstico no hay id: la agenda no sabe qué es "el Full" a secas, y
+  // cada densidad y plasticidad es un servicio suyo distinto. Los servicios
+  // sin matriz sí lo traen, porque ahí no hay nada que preguntar.
+  return {
+    precio: s.precio ?? "",
+    n: null,
+    mins: aMinutos(s.tiempo),
+    exacto: false,
+    servicioId: s.matriz ? null : (s.servicioId ?? null),
+  };
 }
 
 type ParaCobrar = Pick<Reserva, "svc" | "dens" | "plast" | "extras">;
@@ -90,11 +106,14 @@ export function calcularTotal(reserva: ParaCobrar): Total {
   let mins = base.mins ?? 0;
   let exacto = base.exacto;
   const labels = s ? [s.nombre] : [];
+  // El principal va primero: es el que manda en la duración del bloque.
+  const servicioIds = base.servicioId ? [base.servicioId] : [];
 
   for (const nombre of reserva.extras) {
     const a = adicionalesDe(s).find((x) => x.n === nombre);
     if (!a) continue;
     labels.push(a.n);
+    if (a.servicioId) servicioIds.push(a.servicioId);
     const precio = aNumero(a.p);
     if (precio != null && n != null) n += precio;
     else if (precio == null) exacto = false;
@@ -106,6 +125,8 @@ export function calcularTotal(reserva: ParaCobrar): Total {
     precio: n != null ? money(n) : base.precio || "—",
     tiempo: mins ? hhmm(mins) : "",
     labels,
+    servicioIds,
+    servicioId: base.servicioId ?? null,
   };
 }
 

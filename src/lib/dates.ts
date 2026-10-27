@@ -47,35 +47,8 @@ export function proximosDias(n = 16): Date[] {
   return out;
 }
 
-export const HORAS = ["9:00 am", "10:30 am", "12:00 m", "1:30 pm", "3:00 pm", "4:30 pm"];
-
-/** Minutos desde medianoche en que arranca cada hora de la grilla */
-const INICIO: Record<string, number> = {
-  "9:00 am": 540, "10:30 am": 630, "12:00 m": 720,
-  "1:30 pm": 810, "3:00 pm": 900, "4:30 pm": 990,
-};
-const CIERRE = 18 * 60;
-
-/** Ocupación simulada pero estable: el mismo día siempre se ve igual */
-function ocupado(fecha: string, hora: string, estilista: string | null): boolean {
-  const s = fecha + hora + (estilista ?? "");
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return h % 10 < 3;
-}
-
-/**
- * Las horas donde el bloque COMPLETO cabe antes de cerrar.
- *
- * Es la regla que evita la cita que empieza a las 4:30 y necesita tres horas:
- * ofrecerla deja a la clienta en el salón después del cierre, o a la estilista
- * cortando el servicio por la mitad.
- */
-export function horasLibres(
-  fecha: string,
-  duracionMinutos: number,
-  estilista: string | null
-): string[] {
-  const dura = duracionMinutos || 90;
-  return HORAS.filter((h) => INICIO[h] + dura <= CIERRE).filter((h) => !ocupado(fecha, h, estilista));
-}
+/* La grilla de horas y la ocupación simulada vivían acá. Se fueron cuando la
+   pantalla de fecha pasó a preguntarle a la agenda: las horas libres dependen
+   del horario de cada profesional, de sus bloqueos, de las citas que ya tiene
+   y de las retenciones de otras clientas, y ninguna de esas cuatro cosas la
+   sabe el navegador. Ver `agendaApi.disponibilidad`. */

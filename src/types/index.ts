@@ -28,6 +28,15 @@ export interface FilaMatriz {
   /** Duración con plasticidad alta */
   ta?: string;
   tb?: string;
+  /**
+   * El `servicio_id` de la agenda para cada celda, p. ej. `SV-21649`.
+   *
+   * Cada combinación densidad x plasticidad ES un servicio distinto en la
+   * agenda, con su propio precio y su propia duración. Sin este id la cita no
+   * se puede crear: el backend no sabe qué es "el Full de Alejandra".
+   */
+  idA?: string;
+  idB?: string;
 }
 
 export interface Adicional {
@@ -35,10 +44,19 @@ export interface Adicional {
   p?: string;
   /** "+30 min", "No agrega tiempo" */
   t?: string;
+  /** Su `servicio_id` en la agenda. Un adicional también es un servicio. */
+  servicioId?: string;
 }
 
 export interface Servicio {
   id: string;
+  /** La familia del catálogo de la agenda, p. ej. `COMPLETO`. Es la llave que
+   *  une lo que la agenda sabe (precios, tiempos, ids) con el texto que vive
+   *  en el frontend (descripción, qué incluye, en qué grupo va). */
+  familia?: string;
+  /** El `servicio_id` de los que NO tienen matriz. Los que la tienen lo llevan
+   *  por celda, porque cada combinación es un servicio distinto. */
+  servicioId?: string;
   grupo: string;
   /** Orden dentro del grupo */
   orden: number;
@@ -67,6 +85,8 @@ export interface Resuelto {
   mins: number | null;
   /** true = salió de la matriz con el diagnóstico, no del rango */
   exacto: boolean;
+  /** El id que va a la agenda. null mientras falte el diagnóstico. */
+  servicioId?: string | null;
 }
 
 /** El total del bloque: servicio principal + adicionales */
@@ -74,6 +94,9 @@ export interface Total extends Resuelto {
   tiempo: string;
   /** Los nombres que componen el bloque, para "Full + Ozonoterapia" */
   labels: string[];
+  /** Los `servicio_id` del bloque entero —principal y adicionales— en el
+   *  orden en que se cobran. Es lo que viaja a `POST /cita`. */
+  servicioIds: string[];
 }
 
 /* ---------- La reserva en curso ---------- */
@@ -94,8 +117,19 @@ export interface Reserva {
   plast: Plasticidad | null;
   /** Nombres de los adicionales elegidos, como vienen del catálogo */
   extras: string[];
-  /** null = la asigna el salón */
+  /** El nombre, para mostrar. null = la asigna el salón. */
   estilista: string | null;
+  /** Su `profesional_id` en la agenda. Es lo que viaja al backend; el nombre
+   *  es cosmético y puede repetirse entre dos personas. */
+  estilistaId: string | null;
+  /**
+   * El cupo apartado mientras la clienta paga, y cuándo vence.
+   *
+   * `POST /cita` lo exige. Se guarda en la reserva y no en el estado de una
+   * pantalla porque sobrevive a ir y volver entre el resumen y el abono.
+   */
+  retencionId: string | null;
+  retencionExpira: string | null;
   /** YYYY-MM-DD */
   fecha: string | null;
   /** "10:30 am" */

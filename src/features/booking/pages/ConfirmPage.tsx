@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { agendaApi } from "../../../api/agenda";
+import { ApiError } from "../../../api/httpClient";
 import { PAISES } from "../../../data/catalog";
 import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
@@ -28,22 +30,62 @@ export default function ConfirmPage() {
   const [tel, setTel] = useState(reserva.tel);
   const [correo, setCorreo] = useState(reserva.correo);
   const [tocado, setTocado] = useState(false);
+  const [apartando, setApartando] = useState(false);
+  const [errorCupo, setErrorCupo] = useState<string | null>(null);
 
   const digitos = PAISES[pais][2];
   const nombreOk = isFullName(nombre);
   const telOk = tel.length === digitos;
   const correoOk = isEmail(correo);
 
-  function seguir() {
+  /**
+   * Aparta el cupo y pasa al abono.
+   *
+   * La retención se pide ACÁ y no en el abono: entre que la clienta ve el
+   * resumen y termina de pagar pasan varios minutos, y en ese rato el cupo se
+   * lo puede llevar otra persona o la recepción de la sede, que no mira esta
+   * web. Mejor que falle en este botón, donde todavía puede elegir otra hora,
+   * que después de haber transferido.
+   */
+  async function seguir() {
     setTocado(true);
-    if (!nombreOk || !telOk || !correoOk) return;
-    actualizar({
+    if (!nombreOk || !telOk || !correoOk || !reserva.fecha || !reserva.hora) return;
+
+    const datos = {
       nombre: nombre.trim(),
       pais: PAISES[pais][0],
       tel,
       correo: correo.trim().toLowerCase(),
-    });
-    navigate(PATHS.deposit);
+    };
+
+    setApartando(true);
+    setErrorCupo(null);
+    try {
+      const r = await agendaApi.retener(
+        reserva.fecha,
+        reserva.hora,
+        total.servicioIds,
+        reserva.estilistaId
+      );
+      actualizar({
+        ...datos,
+        retencionId: r.retencionId,
+        retencionExpira: r.expiraEn,
+        // El servidor pudo elegir por ella si no había preferencia; se guarda
+        // a quién le tocó para que el resumen no diga otra cosa.
+        estilistaId: r.profesionalId ?? reserva.estilistaId,
+        estilista: r.profesionalNombre ?? reserva.estilista,
+      });
+      navigate(PATHS.deposit);
+    } catch (err: unknown) {
+      const esCupo = err instanceof ApiError && err.code === "cupo_tomado";
+      setErrorCupo(esCupo ? t("cupoTomado") : (err as Error)?.message ?? t("errorCatalogo"));
+      // El cupo ya no es suyo: se limpia la hora para que vuelva a elegir en
+      // vez de reintentar sobre algo que ya no existe.
+      if (esCupo) actualizar({ ...datos, hora: null });
+    } finally {
+      setApartando(false);
+    }
   }
 
   const plastTxt = reserva.plast === "pa" ? t("soloSe").toLowerCase() : t("ayuda").toLowerCase();
@@ -89,8 +131,14 @@ export default function ConfirmPage() {
 
       <Callout>{t("reprogramar")}</Callout>
 
+      {errorCupo && (
+        <p className="sub" style={{ margin: "12px 0 0" }} role="alert">{errorCupo}</p>
+      )}
+
       <Sticky>
-        <Button onClick={seguir}>{t("irAbono")}</Button>
+        <Button disabled={apartando} onClick={() => void seguir()}>
+          {apartando ? t("apartando") : t("irAbono")}
+        </Button>
       </Sticky>
     </>
   );
