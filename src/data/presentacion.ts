@@ -111,7 +111,7 @@ export const PRESENTACION: Record<string, Presentacion> = {
     adicionales: ["BARBA Y CEJAS", "DEFINICION SENCILLA COMBO", "MASCARILLA COMBO", "OZONOTERAPIA COMBO", "DETOX"],
   },
   "CORTE HOMBRE + DEFINICION SENCILLA": {
-    id: "h-corte-def", grupo: "Hombres", orden: 20, nombre: "Corte + definición sencilla",
+    id: "h-corte-def", grupo: "Hombres", orden: 20, nombre: "Corte hombre + definición sencilla",
     desc: "El corte básico de hombre con definición sencilla, barba y cejas.",
     incluye: "Corte, lavado, definición sencilla, secado al 70%, barba y cejas",
     nota: "*no aplica para afro ni plasticidades bajas.",
