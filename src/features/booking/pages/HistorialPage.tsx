@@ -1,5 +1,5 @@
 import { Navigate, useNavigate } from "react-router-dom";
-import { adicionalesDe, buscarServicio } from "../../../data/catalog";
+import { adicionalesDe, anclaGrupo, buscarServicio } from "../../../data/catalog";
 import { useApp } from "../../../context/AppContext";
 import { useHistorial } from "../useHistorial";
 import { hhmm, resolver } from "../../../lib/pricing";
@@ -53,6 +53,12 @@ export default function HistorialPage() {
       return;
     }
     navigate(adicionalesDe(s).length ? PATHS.extras : PATHS.date);
+  }
+
+  /** "Era de u\u00f1as, pero no s\u00e9 cu\u00e1l": al men\u00fa, abierto en ese grupo. */
+  function escoger(pasado: ServicioPasado) {
+    actualizar({ extras: [], repite: false, svc: null });
+    navigate(`${PATHS.menu}#${anclaGrupo(pasado.grupo!)}`);
   }
 
   function otroServicio() {
@@ -109,6 +115,19 @@ export default function HistorialPage() {
       )}
 
       {historial.servicios.map((pasado) => {
+        if (pasado.grupo) {
+          return (
+            <div className="hist" key={`grupo-${pasado.grupo}`}>
+              <div className="hs">{pasado.nombre}</div>
+              <div className="hm">{pasado.fecha}</div>
+              <div className="hr">
+                <Button size="sm" style={{ flex: 1 }} onClick={() => escoger(pasado)}>
+                  {t("escogerCual")}
+                </Button>
+              </div>
+            </div>
+          );
+        }
         const s = buscarServicio(pasado.svc);
         if (!s) return null;
         const r = resolver(s, historial.dens, historial.plast);

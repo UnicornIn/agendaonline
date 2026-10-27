@@ -147,6 +147,17 @@ export interface ServicioPasado {
   /** Ya formateada: "12 de agosto de 2026" */
   fecha: string;
   extras: string[];
+  /**
+   * Cuando la agenda sabe QUE se hizo algo pero no CUAL.
+   *
+   * "Servicio de uñas" del catálogo viejo no dice si fue convencional,
+   * semipermanente o forrado. En vez de callarlo se muestra la tarjeta con el
+   * nombre viejo y se le deja escoger del grupo. `svc` va vacío: no hay un
+   * servicio al que repetir.
+   */
+  grupo?: string;
+  /** El nombre viejo, para la tarjeta. Solo con `grupo`. */
+  nombre?: string;
 }
 
 export interface Historial {

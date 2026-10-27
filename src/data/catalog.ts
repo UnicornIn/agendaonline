@@ -118,6 +118,15 @@ export interface Ubicacion {
   plast: "pa" | "pb" | null;
 }
 
+/**
+ * El id de HTML donde empieza un grupo del menú.
+ *
+ * Lo escribe MenuPage y lo apunta la tarjeta de "escoge cuál" del historial,
+ * para que al tocarla el menú abra ya en Uñas y no arriba del todo.
+ */
+export const anclaGrupo = (grupo: string): string =>
+  "g-" + grupo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
 export function ubicarServicioId(id: string): Ubicacion | null {
   for (const s of CATALOGO) {
     if (s.servicioId === id) return { servicio: s, dens: null, plast: null };

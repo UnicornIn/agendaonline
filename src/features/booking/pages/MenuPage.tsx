@@ -1,6 +1,7 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
-  buscarServicio, ETIQUETA_GRUPO, NOTA_GRUPO, ORDEN_GRUPOS, serviciosDelGrupo,
+  anclaGrupo, buscarServicio, ETIQUETA_GRUPO, NOTA_GRUPO, ORDEN_GRUPOS, serviciosDelGrupo,
 } from "../../../data/catalog";
 import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
@@ -17,7 +18,16 @@ import {
  */
 export default function MenuPage() {
   const navigate = useNavigate();
+  const { hash } = useLocation();
   const { t, lang, reserva, actualizar } = useApp();
+
+  // El historial puede mandar aquí apuntando a un grupo ("era de uñas, escoge
+  // cuál"). Sin esto el menú abre arriba del todo y le toca buscar.
+  useEffect(() => {
+    if (!hash) return;
+    const destino = document.getElementById(hash.slice(1));
+    destino?.scrollIntoView({ block: "start" });
+  }, [hash]);
 
   const full = buscarServicio("full");
   const otrosGrupos = ORDEN_GRUPOS.filter((g) => g !== "Servicio Full");
@@ -65,7 +75,7 @@ export default function MenuPage() {
         const lista = serviciosDelGrupo(grupo);
         if (!lista.length) return null;
         return (
-          <div key={grupo}>
+          <div key={grupo} id={anclaGrupo(grupo)} style={{ scrollMarginTop: 72 }}>
             <GroupLabel>{etiqueta(grupo)}</GroupLabel>
             {NOTA_GRUPO[grupo] && (
               <p className="sub" style={{ margin: "-4px 0 10px", fontSize: 13 }}>{NOTA_GRUPO[grupo]}</p>

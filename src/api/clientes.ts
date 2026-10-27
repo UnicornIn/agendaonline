@@ -23,6 +23,8 @@ import type { Densidad, Historial, Plasticidad, ServicioPasado } from "../types"
 /** Un bloque frecuente tal como lo manda el backend. */
 interface BloqueApi {
   servicioIds: string[];
+  /** Si viene con algo, el bloque no se repite: se escoge de esta lista. */
+  opciones?: string[];
   etiqueta: string;
   veces: number;
   /** ISO */
@@ -68,7 +70,27 @@ function fechaBonita(iso: string | null): string {
  * "repetir" algo que la sede dejó de prestar termina en una cita que nadie
  * puede atender.
  */
+/** "SERVICIO DE UÑAS" -> "Servicio de uñas". En mayúsculas parece un grito. */
+const comoTitulo = (texto: string): string => {
+  const limpio = texto.trim().toLowerCase();
+  return limpio ? limpio[0].toUpperCase() + limpio.slice(1) : "";
+};
+
 function aServicioPasado(bloque: BloqueApi): ServicioPasado | null {
+  // El bloque que no dice CUÁL: se muestra con su nombre viejo y lleva al
+  // grupo donde están las opciones de hoy.
+  if (bloque.opciones?.length) {
+    const ubicado = bloque.opciones.map(ubicarServicioId).find((u) => u !== null);
+    if (!ubicado) return null;
+    return {
+      svc: "",
+      fecha: fechaBonita(bloque.ultimaVez),
+      extras: [],
+      grupo: ubicado.servicio.grupo,
+      nombre: comoTitulo(bloque.etiqueta),
+    };
+  }
+
   let principal: ReturnType<typeof ubicarServicioId> = null;
   const extras: string[] = [];
 
