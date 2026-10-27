@@ -107,16 +107,27 @@ function aHistorial(api: HistorialApi, correo: string): Historial | null {
 
 const espera = (ms = 420) => new Promise<void>((r) => setTimeout(r, ms));
 
-const DEMO: Record<string, Historial> = {
-  "573104567890": {
-    nombre: "Laura Restrepo", estilista: "Marcela", visitas: 7,
-    dens: "Alta", plast: "pa", correo: "laura@mail.com",
-    servicios: [
-      { svc: "full", fecha: "12 de agosto de 2026", extras: ["Ozonoterapia"] },
-      { svc: "definicion", fecha: "3 de junio de 2026", extras: [] },
-    ],
-  },
-};
+/**
+ * Una clienta de mentira para trabajar sin backend.
+ *
+ * Va detrás de `import.meta.env.DEV` y no solo de `useMocks` para que Vite la
+ * borre del build: `useMocks` se evalúa al arrancar, así que el objeto viajaba
+ * igual en el bundle público. Es una ficha con nombre y correo —falsos, pero
+ * con pinta de reales— y no tiene nada que hacer en un archivo que cualquiera
+ * puede abrir.
+ */
+const DEMO: Record<string, Historial> = import.meta.env.DEV
+  ? {
+      "573104567890": {
+        nombre: "Laura Restrepo", estilista: "Marcela", visitas: 7,
+        dens: "Alta", plast: "pa", correo: "laura@mail.com",
+        servicios: [
+          { svc: "full", fecha: "12 de agosto de 2026", extras: ["Ozonoterapia"] },
+          { svc: "definicion", fecha: "3 de junio de 2026", extras: [] },
+        ],
+      },
+    }
+  : {};
 
 /** `+57` + `3104567890` -> `573104567890`, que es como la agenda los guarda */
 export const claveTelefono = (pais: string, tel: string): string =>

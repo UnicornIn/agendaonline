@@ -9,6 +9,10 @@ import { PATHS } from "../../../router/paths";
 import { isEmail, isFullName } from "../../../lib/validation";
 import { Button, Field, Html, PhoneField, Sticky, Sub, TitleHtml } from "../../../components/ui";
 
+/** Con qué datos probar sin backend. Se borra del build de producción. */
+const AYUDA_PROTOTIPO =
+  "En el prototipo prueba con <b>Laura Restrepo</b> y <b>310 456 7890</b>.";
+
 /**
  * Entrar con el nombre y el celular.
  *
@@ -131,7 +135,11 @@ export default function IdentPage() {
         </Button>
       </Sticky>
 
-      <Html as="p" className="note" style={{ marginTop: 16 }} html={t("demo")} />
+      {/* La ayuda del prototipo, solo en desarrollo. En producción le estaría
+          diciendo a una clienta real que teclee un celular que no es el suyo. */}
+      {import.meta.env.DEV && (
+        <Html as="p" className="note" style={{ marginTop: 16 }} html={AYUDA_PROTOTIPO} />
+      )}
     </>
   );
 }
