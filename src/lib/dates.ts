@@ -37,9 +37,14 @@ export const fechaISOBonita = (iso: string | null, lang: Lang): string =>
 /** Los próximos n días hábiles desde mañana. El domingo la sede no abre. */
 export function proximosDias(n = 16): Date[] {
   const out: Date[] = [];
+  // Empieza HOY. Arrancaba manana, y eso le regalaba un dia entero al
+  // silencio: a las 12:42 a.m. de un martes el martes completo seguia libre
+  // y la web ya no lo ofrecia. Que hoy todavia sirva no lo decide el
+  // navegador sino la agenda, que descuenta los cupos pasados y los que
+  // empiezan antes de `ANTICIPACION_MINIMA_MINUTOS`; si no queda ninguno, el
+  // dia llega sin cupo y el selector lo apaga solo.
   const d = new Date();
   d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + 1);
   while (out.length < n) {
     if (d.getDay() !== 0) out.push(new Date(d));
     d.setDate(d.getDate() + 1);

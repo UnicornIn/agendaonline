@@ -89,6 +89,15 @@ export default function DatePage() {
     };
   }, [idsClave, dias]);
 
+  /* ---- si hoy ya no da, se corre al primer dia que si ---- */
+  useEffect(() => {
+    // Solo mientras ella no haya tocado ningun dia. Despues de eso manda su
+    // eleccion, aunque el dia se quede sin cupos mientras decide.
+    if (reserva.fecha || diasConCupo === null) return;
+    const primero = dias.map(aISO).find((iso) => diasConCupo.has(iso));
+    if (primero && primero !== fecha) actualizar({ fecha: primero, hora: null });
+  }, [diasConCupo, dias, fecha, reserva.fecha, actualizar]);
+
   /* ---- las horas de ESE día ---- */
   useEffect(() => {
     if (!idsClave) return;
