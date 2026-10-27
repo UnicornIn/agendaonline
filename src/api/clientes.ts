@@ -133,21 +133,31 @@ const DEMO: Record<string, Historial> = import.meta.env.DEV
 export const claveTelefono = (pais: string, tel: string): string =>
   pais.replace("+", "") + tel.replace(/\D/g, "");
 
+/**
+ * El nombre es obligatorio; el contacto es celular O correo.
+ *
+ * El nombre no se puede negociar: es lo que impide que esto sea un oráculo
+ * para averiguar, probando datos, quién es clienta de Rizos. El contacto sí,
+ * porque la sede registró a unas con teléfono y a otras con correo, y pedir
+ * ambos deja afuera justo a las de siempre.
+ */
 export interface DatosDeBusqueda {
   nombre: string;
-  pais: string;
-  tel: string;
+  /** Indicativo con "+". Solo se usa si viene `tel`. */
+  pais?: string;
+  tel?: string;
   correo?: string;
 }
 
 /** El historial de quien se identificó, o null si no hay ninguno con esos datos. */
 export async function buscarHistorial(datos: DatosDeBusqueda): Promise<Historial | null> {
-  const celular = claveTelefono(datos.pais, datos.tel);
-  const correo = datos.correo?.trim().toLowerCase() ?? "";
+  const tel = (datos.tel ?? "").trim();
+  const celular = tel ? claveTelefono(datos.pais ?? "+57", tel) : null;
+  const correo = datos.correo?.trim().toLowerCase() || null;
 
   if (config.useMocks) {
     await espera();
-    const h = DEMO[celular];
+    const h = celular ? DEMO[celular] : Object.values(DEMO).find((x) => x.correo === correo);
     return h && h.nombre.toLowerCase().includes(datos.nombre.trim().toLowerCase().split(" ")[0])
       ? h
       : null;
@@ -156,7 +166,7 @@ export async function buscarHistorial(datos: DatosDeBusqueda): Promise<Historial
   const api = await http.post<HistorialApi>("/clienta/historial", {
     nombre: datos.nombre.trim(),
     celular,
-    correo: correo || null,
+    correo,
   });
-  return aHistorial(api, correo);
+  return aHistorial(api, correo ?? "");
 }

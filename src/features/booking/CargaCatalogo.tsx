@@ -45,8 +45,17 @@ export default function CargaCatalogo({ children }: { children: React.ReactNode 
       })
       .catch((err: unknown) => {
         if (!vigente) return;
-        const mensaje = err instanceof ApiError ? err.message : t("errorCatalogo");
-        setEstado({ fase: "error", mensaje });
+        // El mensaje del backend solo se muestra cuando ÉL lo redactó para la
+        // clienta —los errores del módulo traen `error.codigo`—. Lo demás es
+        // "Error 500", un timeout del proxy o lo que diga un gateway, y nada
+        // de eso le dice a nadie qué hacer. Queda en consola para quien
+        // depure y en pantalla va algo que sí se entiende.
+        const propio = err instanceof ApiError && err.code && err.code !== "sin_conexion";
+        if (!propio) console.error("[catálogo] no se pudo cargar:", err);
+        setEstado({
+          fase: "error",
+          mensaje: propio ? (err as ApiError).message : t("errorCatalogo"),
+        });
       });
     return () => {
       vigente = false;
