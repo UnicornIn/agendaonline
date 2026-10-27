@@ -181,6 +181,11 @@ h1,h2,h3{font-family:"Antonio",sans-serif;font-weight:600;letter-spacing:.01em;m
   padding:9px 0;text-align:center;cursor:pointer;font-family:inherit;transition:transform .12s var(--ease);
 }
 .day:active{transform:scale(.95)}
+/* Un dia sin horas tiene que VERSE sin horas. Se pintaba igual que los
+   demas, asi que la clienta lo tocaba, no pasaba nada, y la seleccion
+   aparecia sola en otro dia: se lee como que la pagina esta rota. */
+.day:disabled{opacity:.3;cursor:not-allowed}
+.day:disabled .dn{text-decoration:line-through}
 .day .dw{font-size:10.5px;color:var(--muted);text-transform:uppercase}
 .day .dn{font-family:"Antonio",sans-serif;font-size:21px;line-height:1.2}
 .day .dm{font-size:10px;color:var(--muted);text-transform:uppercase}

@@ -36,6 +36,8 @@ interface BloqueApi {
 interface HistorialApi {
   reconocida: boolean;
   nombre: string | null;
+  /** El que tiene la agenda. Puede no estar: hay fichas sin correo. */
+  correo: string | null;
   ultimaVisita: string | null;
   diagnostico: { densidad: string | null; plasticidad: string | null };
   frecuentes: BloqueApi[];
@@ -108,6 +110,11 @@ function aServicioPasado(bloque: BloqueApi): ServicioPasado | null {
   return { svc: principal.servicio.id, fecha: fechaBonita(bloque.ultimaVez), extras };
 }
 
+/**
+ * `correo` es el que ella tecleó para identificarse; puede venir vacío si
+ * entró por celular. Gana el de la agenda cuando lo hay, porque es a donde la
+ * sede ya le escribe.
+ */
 function aHistorial(api: HistorialApi, correo: string): Historial | null {
   if (!api.reconocida) return null;
   const servicios = api.frecuentes
@@ -124,7 +131,7 @@ function aHistorial(api: HistorialApi, correo: string): Historial | null {
     ultimaVisita: fechaBonita(api.ultimaVisita),
     dens: aDensidad(api.diagnostico?.densidad ?? null),
     plast: aPlasticidad(api.diagnostico?.plasticidad ?? null),
-    correo,
+    correo: api.correo?.trim().toLowerCase() || correo,
     servicios,
   };
 }
