@@ -34,6 +34,10 @@ export const TEXTOS = {
   noHist: ["No encontramos un historial con esos datos. Revisa que el nombre esté como te registraron, o sigue y te agendamos como primera vez.",
            "We couldn't find a history with those details. Check the name matches how the salon registered you, or continue and we'll book you as a first-timer."],
   holaX: ["Hola %s", "Hi %s"],
+  sinRepetibles: [
+    "Lo que te has hecho con nosotros todavía no se agenda por acá. Elige del menú y te guardamos el cupo igual.",
+    "What you've had done with us can't be booked here yet. Pick from the menu and we'll still hold your slot.",
+  ],
   histTitulo: ["Aquí el historial<br>de tu cabello", "Here's your hair<br>history"],
   tuPerfil: ["Tu perfil", "Your profile"],
   tuEstilista: ["Tu estilista", "Your stylist"],

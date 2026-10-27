@@ -85,6 +85,15 @@ export default function HistorialPage() {
         </div>
       )}
 
+      {/* Reconocida y sin nada que repetir. Pasa cuando todo su historial son
+          servicios que el catálogo web no ofrece —color, uñas sin especificar,
+          los nombres viejos que nadie emparejó— y sin este aviso la pantalla
+          queda en blanco debajo del saludo: se lee como una página rota, no
+          como una respuesta. */}
+      {historial.servicios.length === 0 && (
+        <p className="sub" style={{ margin: "4px 0 0" }}>{t("sinRepetibles")}</p>
+      )}
+
       {historial.servicios.map((pasado) => {
         const s = buscarServicio(pasado.svc);
         if (!s) return null;
