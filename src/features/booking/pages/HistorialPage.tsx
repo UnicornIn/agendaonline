@@ -56,16 +56,34 @@ export default function HistorialPage() {
     <>
       <Kicker style={{ marginTop: 14 }}>{t("holaX", { "%s": historial.nombre.split(" ")[0] })}</Kicker>
       <TitleHtml html={t("histTitulo")} />
-      <Sub>{t("visitas", { "%n": historial.visitas })}</Sub>
+      <Sub>
+        {historial.ultimaVisita
+          ? t("ultimaVez", { "%s": historial.ultimaVisita })
+          : t("yaNosConoces")}
+      </Sub>
 
-      <div className="perfil">
-        <b>{t("tuPerfil")}</b>
-        {t("tuEstilista")}: <span className="quien">{historial.estilista}</span>
-        {historial.dens && (
-          <> · {t("tuCabello")}: {lang === "es" ? "densidad" : "density"}{" "}
-            {historial.dens.toLowerCase()} · {plastTxt(historial.plast)}</>
-        )}
-      </div>
+      {/* Solo los datos que de verdad vinieron. La agenda no siempre sabe
+          quién la atendió —la cita puede estar a nombre de alguien que ya no
+          trabaja en la sede— y "Tu estilista:" seguido de nada se lee como
+          una página rota. Si no viene ninguno de los dos, no hay perfil. */}
+      {(historial.estilista || historial.dens) && (
+        <div className="perfil">
+          <b>{t("tuPerfil")}</b>
+          {[
+            historial.estilista && (
+              <>{t("tuEstilista")}: <span className="quien">{historial.estilista}</span></>
+            ),
+            historial.dens && (
+              <>{t("tuCabello")}: {lang === "es" ? "densidad" : "density"}{" "}
+                {historial.dens.toLowerCase()} · {plastTxt(historial.plast)}</>
+            ),
+          ]
+            .filter(Boolean)
+            .map((parte, i) => (
+              <span key={i}>{i > 0 && " · "}{parte}</span>
+            ))}
+        </div>
+      )}
 
       {historial.servicios.map((pasado) => {
         const s = buscarServicio(pasado.svc);

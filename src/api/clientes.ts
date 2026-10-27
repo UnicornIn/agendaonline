@@ -95,7 +95,11 @@ function aHistorial(api: HistorialApi, correo: string): Historial | null {
   return {
     nombre: api.nombre ?? "",
     estilista: api.frecuentes.find((b) => b.profesionalNombre)?.profesionalNombre ?? "",
-    visitas: api.frecuentes.reduce((n, b) => n + b.veces, 0),
+    // La fecha que manda la agenda, no una cuenta armada acá. Esta línea
+    // sumaba las `veces` de los bloques y se mostraba como "N visitas con
+    // nosotros": eso no son sus visitas, son las veces que repitió los tres
+    // bloques que la web alcanza a ofrecer, y no cuadraba con la agenda.
+    ultimaVisita: fechaBonita(api.ultimaVisita),
     dens: aDensidad(api.diagnostico?.densidad ?? null),
     plast: aPlasticidad(api.diagnostico?.plasticidad ?? null),
     correo,
@@ -119,7 +123,8 @@ const espera = (ms = 420) => new Promise<void>((r) => setTimeout(r, ms));
 const DEMO: Record<string, Historial> = import.meta.env.DEV
   ? {
       "573104567890": {
-        nombre: "Laura Restrepo", estilista: "Marcela", visitas: 7,
+        nombre: "Laura Restrepo", estilista: "Marcela",
+        ultimaVisita: "12 de agosto de 2026",
         dens: "Alta", plast: "pa", correo: "laura@mail.com",
         servicios: [
           { svc: "full", fecha: "12 de agosto de 2026", extras: ["Ozonoterapia"] },

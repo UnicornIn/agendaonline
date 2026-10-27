@@ -151,8 +151,10 @@ export interface ServicioPasado {
 
 export interface Historial {
   nombre: string;
+  /** Puede venir vacío: la agenda no siempre sabe quién la atendió. */
   estilista: string;
-  visitas: number;
+  /** Ya formateada, o "" si no hay. Sale de `ultimaVisita` de la agenda. */
+  ultimaVisita: string;
   dens: Densidad | null;
   plast: Plasticidad | null;
   correo: string;
