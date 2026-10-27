@@ -25,9 +25,19 @@ export default function HistorialPage() {
   const plastTxt = (p: "pa" | "pb" | null) =>
     p === "pa" ? t("soloSe").toLowerCase() : t("ayuda").toLowerCase();
 
-  /** Repetir salta el diagnóstico: la densidad y la plasticidad ya las sabemos. */
+  /**
+   * Repetir salta el diagnóstico cuando lo sabemos, y lo pregunta cuando no.
+   *
+   * No siempre lo sabemos. Hay servicios viejos que la agenda no partía por
+   * densidad ni por plasticidad —"X SOLO DEFINICION ALTA" es uno— y de esos
+   * se deduce la tarjeta pero no el escalón. Mandarla derecho a la fecha con
+   * el escalón en blanco la deja en una pantalla sin horas, porque sin
+   * `servicio_id` no hay nada que preguntarle a la agenda. Así que se le
+   * pregunta lo que falte, igual que a quien entra por el menú.
+   */
   function repetir(pasado: ServicioPasado) {
     const s = buscarServicio(pasado.svc);
+    const falta = s?.matriz && !resolver(s, historial!.dens, historial!.plast).exacto;
     actualizar({
       svc: pasado.svc,
       extras: [...pasado.extras],
@@ -38,6 +48,10 @@ export default function HistorialPage() {
       fecha: null,
       hora: null,
     });
+    if (falta) {
+      navigate(historial!.dens ? PATHS.plasticity : PATHS.density);
+      return;
+    }
     navigate(adicionalesDe(s).length ? PATHS.extras : PATHS.date);
   }
 
