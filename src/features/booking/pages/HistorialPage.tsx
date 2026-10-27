@@ -22,8 +22,11 @@ export default function HistorialPage() {
   // Un refresh en esta ruta sin historial en sesión: se vuelve a identificar.
   if (!historial) return <Navigate to={PATHS.ident} replace />;
 
+  // `null` NO es P.B. Hay servicios viejos de los que se deduce la densidad y
+  // no la plasticidad, y escribir "le cuesta" porque el dato falta es
+  // afirmarle algo de su cabello que nadie midio \u2014y cobrarle por ello\u2014.
   const plastTxt = (p: "pa" | "pb" | null) =>
-    p === "pa" ? t("soloSe").toLowerCase() : t("ayuda").toLowerCase();
+    p === null ? "" : p === "pa" ? t("soloSe").toLowerCase() : t("ayuda").toLowerCase();
 
   /**
    * Repetir salta el diagnóstico cuando lo sabemos, y lo pregunta cuando no.
@@ -95,7 +98,8 @@ export default function HistorialPage() {
             ),
             historial.dens && (
               <>{t("tuCabello")}: {lang === "es" ? "densidad" : "density"}{" "}
-                {historial.dens.toLowerCase()} · {plastTxt(historial.plast)}</>
+                {historial.dens.toLowerCase()}
+                {historial.plast && <> · {plastTxt(historial.plast)}</>}</>
             ),
           ]
             .filter(Boolean)

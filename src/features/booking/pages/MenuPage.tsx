@@ -34,11 +34,19 @@ export default function MenuPage() {
   const etiqueta = (g: string) => ETIQUETA_GRUPO[lang][g] ?? g;
   const plastTxt = reserva.plast === "pa" ? t("soloSe").toLowerCase() : t("ayuda").toLowerCase();
 
-  /** Un servicio con matriz necesita diagnóstico; sin matriz va derecho al detalle. */
+  /**
+   * Un servicio con matriz necesita el diagnostico COMPLETO.
+   *
+   * Puede venir a medias: de algunos servicios viejos se deduce la densidad y
+   * no la plasticidad. Antes solo se miraba la densidad, asi que esas clientas
+   * llegaban al detalle sin escalon y de ahi a una fecha sin horas.
+   */
   function elegir(id: string) {
     const s = buscarServicio(id);
     actualizar({ svc: id, extras: [] });
-    navigate(s?.matriz && !reserva.dens ? PATHS.density : PATHS.detail);
+    if (!s?.matriz) return navigate(PATHS.detail);
+    if (!reserva.dens) return navigate(PATHS.density);
+    navigate(reserva.plast ? PATHS.detail : PATHS.plasticity);
   }
 
   return (
@@ -48,7 +56,13 @@ export default function MenuPage() {
 
       {reserva.dens && (
         <BlockNote icon="✓">
-          <Html html={t("yaDiag", { "%d": reserva.dens.toLowerCase(), "%p": plastTxt })} />
+          <Html
+            html={
+              reserva.plast
+                ? t("yaDiag", { "%d": reserva.dens.toLowerCase(), "%p": plastTxt })
+                : t("yaDiagDens", { "%d": reserva.dens.toLowerCase() })
+            }
+          />
           <LinkButton
             style={{ textAlign: "left", padding: "5px 0 0", width: "auto" }}
             onClick={() => actualizar({ dens: null, plast: null })}

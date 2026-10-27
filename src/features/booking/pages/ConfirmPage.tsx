@@ -102,7 +102,10 @@ export default function ConfirmPage() {
           total.tiempo ? [t("bloque"), total.tiempo] : null,
           [t("cuando"), `${fechaISOBonita(reserva.fecha, lang)} · ${reserva.hora}`],
           [t("con"), reserva.estilista ?? t("primeraDisp")],
-          reserva.dens ? [t("tuCabello"), `${reserva.dens} · ${plastTxt}`] : null,
+          // Sin plasticidad se dice solo la densidad: `null` no es P.B.
+          reserva.dens
+            ? [t("tuCabello"), reserva.plast ? `${reserva.dens} · ${plastTxt}` : reserva.dens]
+            : null,
         ]}
       />
 

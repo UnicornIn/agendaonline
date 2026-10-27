@@ -50,6 +50,10 @@ export const TEXTOS = {
   noSoyYo: ["No soy yo · cambiar datos", "Not me · change details"],
   menuTitulo: ["¿Qué te vas a hacer?", "What are you booking?"],
   menuSub: ["Toca un servicio para ver el detalle y el valor.", "Tap a service to see details and price."],
+  yaDiagDens: [
+    "Ya sabemos que tu densidad es <b>%d</b>. Solo falta una pregunta.",
+    "We already know your density is <b>%d</b>. Just one question left.",
+  ],
   yaDiag: ["Ya tenemos tu diagnóstico: <b>densidad %d · %p</b>. No te lo volvemos a preguntar.",
            "We already have your diagnosis: <b>%d density · %p</b>. We won't ask again."],
   cambio: ["Mi cabello cambió", "My hair changed"],
