@@ -110,6 +110,9 @@ export const TEXTOS = {
   transferencia: ["Transferencia Bancolombia", "Bancolombia transfer"],
   ahorros: ["Cuenta de ahorros", "Savings account"],
   llave: ["Llave Bre-B", "Bre-B key"],
+  // Sin uso hoy: la sede todavía no tiene link de pago y su fila no se
+  // muestra (`PAGOS.link` en null). Se quedan porque el link va a existir, y
+  // el día que exista es un dato en el catálogo, no volver a escribir esto.
   linkPago: ["Link de pago", "Payment link"],
   abrirLink: ["Abrir", "Open"],
   copiar: ["Copiar", "Copy"],
@@ -170,8 +173,8 @@ export const TEXTOS = {
                "All set, %s: %v on %f at %h. Total %p. All good?"],
   chatTodoBien: ["Sí, todo correcto", "Yes, all good"],
   chatCambiar: ["Quiero cambiar algo", "I'd like to change something"],
-  chatAbono: ["Para apartar tu cupo se abona %a: pagas %s en el salón. Puedes hacerlo por transferencia Bancolombia, llave Bre-B o link de pago, y me envías la foto del comprobante por aquí.",
-              "To hold your spot the deposit is %a: you pay %s at the salon. Bancolombia transfer, Bre-B key or payment link — then send me the receipt photo here."],
+  chatAbono: ["Para apartar tu cupo se abona %a: pagas %s en el salón. Puedes hacerlo por transferencia Bancolombia o llave Bre-B, y me envías la foto del comprobante por aquí.",
+              "To hold your spot the deposit is %a: you pay %s at the salon. Bancolombia transfer or Bre-B key — then send me the receipt photo here."],
   chatYaEnvie: ["Ya envié el comprobante", "Receipt sent"],
 } as const;
 

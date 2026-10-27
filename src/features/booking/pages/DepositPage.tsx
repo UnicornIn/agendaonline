@@ -87,18 +87,22 @@ export default function DepositPage() {
 
   async function copiar(clave: keyof typeof PAGOS) {
     try {
-      await navigator.clipboard.writeText(PAGOS[clave]);
+      await navigator.clipboard.writeText(PAGOS[clave] ?? "");
     } catch {
       /* sin permiso de portapapeles: el dato igual está a la vista */
     }
     toast(t("copiado"));
   }
 
-  const filas: Array<[titulo: string, prefijo: string, clave: keyof typeof PAGOS | null]> = [
-    [t("transferencia"), `${t("ahorros")} · `, "cuenta"],
-    [t("llave"), "", "llave"],
-    [t("linkPago"), "", null],
-  ];
+  // Solo las formas de pago que de verdad existen. El filtro es la regla, no
+  // un caso especial para el link: el día que la sede estrene o quite una, se
+  // cambia el dato en el catálogo y esta pantalla se acomoda sola.
+  const filas = (
+    [
+      ["cuenta", t("transferencia"), `${t("ahorros")} · `],
+      ["llave", t("llave"), ""],
+    ] as Array<[clave: keyof typeof PAGOS, titulo: string, prefijo: string]>
+  ).filter(([clave]) => PAGOS[clave]);
 
   return (
     <>
@@ -115,20 +119,16 @@ export default function DepositPage() {
 
       <Label>{t("comoPagar")}</Label>
       <div className="pay">
-        {filas.map(([titulo, prefijo, clave]) => (
-          <div className="prow" key={titulo}>
+        {filas.map(([clave, titulo, prefijo]) => (
+          <div className="prow" key={clave}>
             <div>
               <div className="pm">{titulo}</div>
               <div className="pd">
                 {prefijo}
-                <span className="pend">{clave ? PAGOS[clave] : PAGOS.link}</span>
+                <span className="pv">{PAGOS[clave]}</span>
               </div>
             </div>
-            {clave ? (
-              <Button variant="ghost" size="sm" onClick={() => copiar(clave)}>{t("copiar")}</Button>
-            ) : (
-              <Button variant="ghost" size="sm" onClick={() => toast(t("linkPago"))}>{t("abrirLink")}</Button>
-            )}
+            <Button variant="ghost" size="sm" onClick={() => copiar(clave)}>{t("copiar")}</Button>
           </div>
         ))}
       </div>

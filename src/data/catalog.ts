@@ -271,11 +271,17 @@ export const ESTILISTAS = ["Marcela", "Tatiana", "Julián", "Sara"];
 /** Lo que se abona para apartar el cupo, y se descuenta del total */
 export const ABONO = 50_000;
 
-/** Datos de pago de la sede. Los corchetes son lo que falta por definir. */
-export const PAGOS = {
-  cuenta: "[número de cuenta por definir]",
-  llave: "[llave Bre-B por definir]",
-  link: "[link de pago por definir]",
+/**
+ * Datos de pago de la sede.
+ *
+ * `null` no es "vacío", es "esta forma de pago no se ofrece": la fila
+ * desaparece de la pantalla del abono. Una forma de pago que la clienta ve y
+ * no puede usar la deja parada en el paso que confirma la cita.
+ */
+export const PAGOS: Record<"cuenta" | "llave" | "link", string | null> = {
+  cuenta: "36000000929",
+  llave: "@rfsuramericana",
+  link: null,
 };
 
 export const WHATSAPP_SEDE = "573000000000";
