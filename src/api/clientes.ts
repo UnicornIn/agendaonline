@@ -9,11 +9,15 @@ import type { Densidad, Historial, Plasticidad, ServicioPasado } from "../types"
    Sale de `POST /clienta/historial`, el único endpoint del módulo que
    devuelve datos de una persona.
 
-   Pide nombre Y celular, y eso no es burocracia. Un endpoint que entregue el
-   historial a cambio de un celular tecleado y nada más es un oráculo: con una
-   lista de números cualquiera averigua quién es clienta de Rizos y qué se
-   hace en el pelo. Exigir que el nombre concuerde con el guardado cierra eso,
-   y por eso la pantalla de identificación pide las dos cosas.
+   Pide celular O correo. El nombre, que iba además, está APAGADO desde el
+   2026-10-27 (`business.pedirNombreEnLogin`).
+
+   No era burocracia: un endpoint que entrega el historial a cambio de un
+   celular tecleado y nada más es un oráculo: con una lista de números
+   cualquiera averigua quién es clienta de Rizos y qué se hace en el pelo.
+   Exigir que el nombre concordara con el guardado cerraba eso. Operación lo
+   apagó porque dejaba por fuera a quien escribe su nombre distinto a como la
+   sede lo guardó. El código sigue completo de los dos lados.
 
    El backend responde igual —`reconocida: false`— para "no está en la base" y
    para "está pero el nombre no concuerda". Distinguirlas volvería a abrir lo
@@ -168,15 +172,17 @@ export const claveTelefono = (pais: string, tel: string): string =>
   pais.replace("+", "") + tel.replace(/\D/g, "");
 
 /**
- * El nombre es obligatorio; el contacto es celular O correo.
+ * El contacto es celular O correo. El nombre va solo si la pantalla lo pidió.
  *
- * El nombre no se puede negociar: es lo que impide que esto sea un oráculo
- * para averiguar, probando datos, quién es clienta de Rizos. El contacto sí,
- * porque la sede registró a unas con teléfono y a otras con correo, y pedir
- * ambos deja afuera justo a las de siempre.
+ * El contacto es uno u otro porque la sede registró a unas con teléfono y a
+ * otras con correo, y pedir ambos deja afuera justo a las de siempre. El
+ * nombre era lo que impedía que esto fuera un oráculo para averiguar,
+ * probando datos, quién es clienta de Rizos; hoy el interruptor está apagado
+ * (`business.pedirNombreEnLogin`).
  */
 export interface DatosDeBusqueda {
-  nombre: string;
+  /** Solo cuando `business.pedirNombreEnLogin` está prendido. */
+  nombre?: string;
   /** Indicativo con "+". Solo se usa si viene `tel`. */
   pais?: string;
   tel?: string;
@@ -192,13 +198,17 @@ export async function buscarHistorial(datos: DatosDeBusqueda): Promise<Historial
   if (config.useMocks) {
     await espera();
     const h = celular ? DEMO[celular] : Object.values(DEMO).find((x) => x.correo === correo);
-    return h && h.nombre.toLowerCase().includes(datos.nombre.trim().toLowerCase().split(" ")[0])
-      ? h
-      : null;
+    if (!h) return null;
+    // El mock imita el interruptor: sin nombre tecleado no hay nada que
+    // comparar y se devuelve igual, como hace el backend apagado.
+    const pila = datos.nombre?.trim().toLowerCase().split(" ")[0];
+    return !pila || h.nombre.toLowerCase().includes(pila) ? h : null;
   }
 
   const api = await http.post<HistorialApi>("/clienta/historial", {
-    nombre: datos.nombre.trim(),
+    // El backend lo acepta siempre y solo lo mira si su propio interruptor
+    // está prendido. Ver `PeticionHistorial`.
+    ...(datos.nombre ? { nombre: datos.nombre.trim() } : {}),
     celular,
     correo,
   });

@@ -3,6 +3,8 @@ export interface BusinessConfig {
   hoursText: string;
   /** Cuántos días hacia adelante se pueden ver. El backend manda el suyo en /config. */
   diasAdelanteFallback: number;
+  /** Si la pantalla de identificación pide el nombre además del contacto. */
+  pedirNombreEnLogin: boolean;
   /** El WhatsApp del agente, solo dígitos con indicativo, como lo quiere wa.me */
   whatsappAgente: string;
 }
@@ -21,6 +23,16 @@ export const business: Readonly<BusinessConfig> = Object.freeze({
   brand: "Rizos Felices",
   hoursText: "Atendemos con cita previa, de lunes a sábado de 9:00 a.m. a 6:00 p.m.",
   diasAdelanteFallback: 16,
+
+  // Apagado desde el 2026-10-27, por decisión de operación. El campo dejaba
+  // por fuera a la clienta que escribe "Juanita" cuando la sede la guardó
+  // como "Juana María", que es justo la de años que el atajo busca.
+  //
+  // ESTE INTERRUPTOR VA JUNTO CON `AUTOAGENDAMIENTO_EXIGIR_NOMBRE` DEL
+  // BACKEND. Prender uno solo es el peor de los casos: con el del backend
+  // prendido y este apagado, la web no manda nombre y NADIE queda reconocida.
+  // Al revés solo se le pide a la clienta un dato que nadie mira.
+  pedirNombreEnLogin: false,
   // +57 312 696 7066. Es una persona de verdad contestando, no un bot: por eso
   // el botón sale de la app en vez de abrir una pantalla propia.
   whatsappAgente: "573126967066",

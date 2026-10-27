@@ -28,7 +28,10 @@ export const TEXTOS = {
   ],
   identTitulo: ["Cuéntanos quién<br>eres", "Tell us who<br>you are"],
   identSub: ["Tu nombre, y el celular o el correo con el que te registraron en el salón. Con cualquiera de los dos traemos tu historial.",
-             "Your name, plus the mobile or email the salon has for you. Either one brings up your history."],
+             "Your name, and the phone or email the salon registered you with. Either one brings up your history."],
+  /* Sin el campo de nombre. Ver `business.pedirNombreEnLogin`. */
+  identSubSoloContacto: ["El celular o el correo con el que te registraron en el salón. Con cualquiera de los dos traemos tu historial.",
+             "The phone or email the salon registered you with. Either one brings up your history."],
   celular: ["Celular", "Mobile"],
   correo: ["Correo", "Email"],
   buscar: ["Buscar mi historial", "Find my history"],
