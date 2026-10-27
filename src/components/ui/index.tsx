@@ -1,5 +1,5 @@
 import type {
-  ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes,
+  AnchorHTMLAttributes, ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes,
 } from "react";
 import { CheckIcon, ChevronIcon, PlayIcon } from "./Icons";
 
@@ -43,10 +43,31 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: "normal" | "big" | "sm";
 }
 
-export function Button({ variant = "primary", size = "normal", className = "", ...props }: ButtonProps) {
-  const cls = ["btn", variant === "ghost" && "ghost", size !== "normal" && size, className]
+function clasesDeBoton(variant: string, size: string, className: string) {
+  return ["btn", variant === "ghost" && "ghost", size !== "normal" && size, className]
     .filter(Boolean).join(" ");
-  return <button className={cls} {...props} />;
+}
+
+export function Button({ variant = "primary", size = "normal", className = "", ...props }: ButtonProps) {
+  return <button className={clasesDeBoton(variant, size, className)} {...props} />;
+}
+
+export interface ButtonLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+  variant?: "primary" | "ghost";
+  size?: "normal" | "big" | "sm";
+}
+
+/**
+ * Un botón que SALE de la app: se ve igual, pero es un enlace de verdad.
+ *
+ * Un `<button onClick={() => location.href = ...}>` se vería igual y sería
+ * peor: no se puede abrir en otra pestaña, el navegador no lo anuncia como
+ * enlace y en móvil pierde el salto a la app de WhatsApp.
+ */
+export function ButtonLink({
+  variant = "primary", size = "normal", className = "", ...props
+}: ButtonLinkProps) {
+  return <a className={clasesDeBoton(variant, size, className)} {...props} />;
 }
 
 export const LinkButton = ({ children, style, onClick }: TextProps & { onClick: () => void }) => (

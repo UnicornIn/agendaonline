@@ -101,7 +101,7 @@ export interface Total extends Resuelto {
 
 /* ---------- La reserva en curso ---------- */
 
-export type Modo = "cliente" | "nueva" | "agente";
+export type Modo = "cliente" | "nueva";
 
 export interface Reserva {
   modo: Modo | null;

@@ -74,8 +74,6 @@ export const PAGOS: Record<"cuenta" | "llave" | "link", string | null> = {
   link: null,
 };
 
-export const WHATSAPP_SEDE = "573000000000";
-
 /* ---------- Búsquedas sobre el catálogo ---------- */
 
 export const buscarServicio = (id: string | null): Servicio | undefined =>

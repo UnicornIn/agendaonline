@@ -15,7 +15,6 @@ export const PATHS = {
   confirm: "/confirmar",
   deposit: "/abono",
   done: "/listo",
-  chat: "/agente",
 } as const;
 
 export type AppPath = (typeof PATHS)[keyof typeof PATHS];

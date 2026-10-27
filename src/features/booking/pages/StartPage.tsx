@@ -1,11 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useApp, RESERVA_VACIA } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
-import { Button, Kicker, Note, Stack, Sub, TitleHtml } from "../../../components/ui";
+import { business } from "../../../config/business";
+import { Button, ButtonLink, Kicker, Note, Stack, Sub, TitleHtml } from "../../../components/ui";
 import { WhatsAppIcon } from "../../../components/ui/Icons";
 
 /**
  * La portada: tres entradas al mismo sitio.
+ *
+ * La tercera sale de la app: abre el WhatsApp del agente, una persona de
+ * verdad. Antes abría un chat simulado dentro de la misma web, y eso promete
+ * algo que no existe —la clienta escribe esperando que alguien le conteste—.
  *
  * "Ya soy cliente" es la primera porque es la que ahorra pasos: con el
  * historial no se vuelve a preguntar el diagnóstico ni los datos. "Primera
@@ -34,9 +39,15 @@ export default function StartPage() {
         <Button size="big" variant="ghost" onClick={primeraVez}>
           {t("btnPrimera")}
         </Button>
-        <Button size="big" variant="ghost" onClick={() => { actualizar({ modo: "agente" }); navigate(PATHS.chat); }}>
+        <ButtonLink
+          size="big"
+          variant="ghost"
+          href={`https://wa.me/${business.whatsappAgente}?text=${encodeURIComponent(t("saludoAgente"))}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <WhatsAppIcon />{t("btnAgente")}
-        </Button>
+        </ButtonLink>
       </Stack>
       <Note style={{ marginTop: 20 }}>{t("horario")}</Note>
     </div>

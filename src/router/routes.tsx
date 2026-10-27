@@ -17,7 +17,6 @@ import DatePage from "../features/booking/pages/DatePage";
 import ConfirmPage from "../features/booking/pages/ConfirmPage";
 import DepositPage from "../features/booking/pages/DepositPage";
 import DonePage from "../features/booking/pages/DonePage";
-import ChatPage from "../features/booking/pages/ChatPage";
 
 const guarded = (requires: ReadonlyArray<keyof Reserva>, element: ReactNode) => (
   <RequireReserva requires={requires}>{element}</RequireReserva>
@@ -41,7 +40,6 @@ export const routes: RouteObject[] = [
       { path: PATHS.confirm, element: guarded(["svc", "fecha", "hora"], <ConfirmPage />), handle: step(6) },
       { path: PATHS.deposit, element: guarded(["svc", "fecha", "hora", "nombre"], <DepositPage />), handle: step(6.6) },
       { path: PATHS.done, element: guarded(["svc", "fecha", "hora", "nombre"], <DonePage />), handle: step(7) },
-      { path: PATHS.chat, element: <ChatPage />, handle: step(3) },
       { path: "*", element: <Navigate to={PATHS.start} replace /> },
     ],
   },
