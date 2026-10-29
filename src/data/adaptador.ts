@@ -1,5 +1,5 @@
 import type { ServicioApi } from "../api/agenda";
-import { NOMBRE_ADICIONAL, PRESENTACION } from "./presentacion";
+import { NO_SE_OFRECEN, NOMBRE_ADICIONAL, PRESENTACION } from "./presentacion";
 import type { Adicional, Densidad, FilaMatriz, Servicio } from "../types";
 
 /* =========================================================
@@ -152,7 +152,9 @@ export function construirCatalogo(servicios: ServicioApi[]): Servicio[] {
   const usadasComoAdicional = new Set(
     Object.values(PRESENTACION).flatMap((p) => p.adicionales ?? [])
   );
-  const huerfanas = sinPresentacion.filter((f) => !usadasComoAdicional.has(f));
+  const huerfanas = sinPresentacion.filter(
+    (f) => !usadasComoAdicional.has(f) && !NO_SE_OFRECEN.has(f)
+  );
   if (huerfanas.length) {
     console.warn(
       "[catálogo] La agenda ofrece servicios que la web no sabe presentar y no se van a mostrar:",
