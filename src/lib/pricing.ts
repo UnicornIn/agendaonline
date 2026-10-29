@@ -82,7 +82,12 @@ export function resolver(
   // sin matriz sí lo traen, porque ahí no hay nada que preguntar.
   return {
     precio: s.precio ?? "",
-    n: null,
+    // `aNumero` y no `null`: un servicio sin matriz tiene UN precio, no un
+    // rango, y si acá queda null los adicionales no se le suman —el botón de
+    // la pantalla de adicionales mostraba el valor pelado del servicio— y
+    // `saldo` no sabe decir cuánto queda por pagar. Para los que sí tienen
+    // matriz, `s.precio` es el rango y `aNumero` sigue devolviendo null.
+    n: aNumero(s.precio),
     mins: aMinutos(s.tiempo),
     exacto: false,
     servicioId: s.matriz ? null : (s.servicioId ?? null),
