@@ -28,6 +28,7 @@ Copia `.env.example` a `.env.local` (o edita `.env.development` / `.env.producti
 | `VITE_ROUTER_MODE` | `browser` (URLs limpias, requiere rewrite a `index.html`) o `hash` |
 | `VITE_ROUTER_BASENAME` / `VITE_PUBLIC_BASE` | Si la app vive en un subdirectorio |
 | `VITE_DEV_PROXY_TARGET` | En desarrollo, proxy del prefijo a este backend (evita CORS) |
+| `VITE_META_PIXEL_ID` | Píxel de Meta. Vacío = no se carga (así está en desarrollo) |
 
 La sede **no** se configura acá: la fija el servidor. Un `sede_id` que venga del navegador es un
 `sede_id` que cualquiera puede cambiar.
@@ -63,6 +64,44 @@ src/
   router/       rutas, guards y paths
   types/        tipos compartidos
 ```
+
+## Medición (Meta Pixel)
+
+El id vive en `VITE_META_PIXEL_ID`, no dentro de `index.html`. En producción está puesto; en
+desarrollo está vacío a propósito, para que las pruebas del equipo no entren a los informes de la
+cuenta de anuncios. Para probar en local va en `.env.development.local` —no en `.env.local`, que
+pierde contra el archivo del modo.
+
+Es una SPA: el snippet de Meta manda un solo PageView y la clienta recorre ocho pantallas sin
+recargar. El PageView de cada paso lo manda `useMetaPixel`, montado una vez en `AppLayout`.
+
+Qué se mide, en [`src/features/analytics/embudo.ts`](src/features/analytics/embudo.ts):
+
+| Pantalla | Evento | Qué significa |
+|---|---|---|
+| todas | `PageView` | Un paso del flujo |
+| `/detalle` | `ViewContent` | Vio un servicio con su precio |
+| `/fecha` | `InitiateCheckout` | Está escogiendo día y hora |
+| `/abono` | `Lead` | Dejó nombre y celular, y el cupo quedó apartado |
+| `/listo` | `Schedule` | **La conversión**: cita confirmada con comprobante |
+
+Cambiar qué se mide es tocar ese archivo y nada más: las pantallas no saben que existe un píxel.
+
+Dos decisiones que conviene no deshacer sin pensarlas:
+
+- **No se le manda a Meta el nombre, el celular ni el correo.** El *advanced matching* los acepta
+  hasheados, pero mandarle los datos de contacto de la clienta a un tercero es una decisión del
+  negocio, no de la web.
+- **`value` solo cuando el precio es exacto.** Con el diagnóstico a medias el precio es un rango, y
+  mandar la punta baja como valor le enseña a Meta un ticket promedio que el salón no cobra.
+
+`Schedule` sale una sola vez por cita, con el id de la cita como `eventID`: la pantalla de "listo"
+se vuelve a pintar en cada refresh y en cada botón atrás. Ese mismo `eventID` sirve para que, si
+algún día la sede manda la cita por la Conversions API desde el backend, Meta sepa que es el mismo
+hecho y no lo cuente dos veces.
+
+No hay `<noscript>` con el pixel en imagen: sin JavaScript esta web no pinta nada, así que no habría
+nada que medir.
 
 ## El backend
 
