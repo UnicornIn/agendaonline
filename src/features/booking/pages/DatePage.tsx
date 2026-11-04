@@ -5,6 +5,7 @@ import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
 import { calcularTotal } from "../../../lib/pricing";
 import { aISO, DOW, MON, proximosDias } from "../../../lib/dates";
+import { trackInitiateCheckout } from "../../../lib/metaPixel";
 import { Button, Chip, Kicker, Label, Sticky, Sub, Title } from "../../../components/ui";
 
 /**
@@ -140,6 +141,18 @@ export default function DatePage() {
   const kicker = [total.labels.join(" + "), total.tiempo && t("bloqueDe", { "%t": total.tiempo })]
     .filter(Boolean).join(" · ");
 
+  // El InitiateCheckout va acá y no en cada toque de una hora: probar tres
+  // horarios es una sola intención de agendar, no tres. Al dar continuar ya
+  // eligió día y hora, que es lo que el evento dice que pasó.
+  const continuar = () => {
+    trackInitiateCheckout({
+      servicio: total.labels.join(" + "),
+      precio: total.n,
+      ids: total.servicioIds,
+    });
+    navigate(PATHS.confirm);
+  };
+
   const mensajeSinHoras = (motivo: string | null): string => {
     if (motivo === "sede_cerrada" || motivo === "fecha_pasada") return t("sedeCerrada");
     if (motivo === "sin_horarios") return t("sinEstilistas");
@@ -220,7 +233,7 @@ export default function DatePage() {
         ))}
 
       <Sticky>
-        <Button disabled={!hora} onClick={() => navigate(PATHS.confirm)}>
+        <Button disabled={!hora} onClick={continuar}>
           {hora ? `${t("continuar")} · ${hora}` : t("continuar")}
         </Button>
       </Sticky>
