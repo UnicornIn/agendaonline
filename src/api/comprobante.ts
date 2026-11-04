@@ -1,6 +1,7 @@
 import { config } from "../config";
 import { agendaApi, type Contacto } from "./agenda";
 import { http } from "./httpClient";
+import type { ContextoMeta } from "../lib/metaPixel";
 
 /* =========================================================
    El comprobante del abono
@@ -77,6 +78,12 @@ export interface DatosDeCita {
   servicioIds: string[];
   contacto: Contacto;
   notas?: string | null;
+  /**
+   * Las cookies de Meta de este navegador, para que el backend pueda mandar la
+   * misma cita por la Conversions API sin que llegue anónima. Opcional y hoy
+   * apagado (`MANDAR_CONTEXTO_META`): el backend todavía no lo recibe.
+   */
+  meta?: ContextoMeta;
 }
 
 /* ---------- el camino real ---------- */

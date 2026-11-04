@@ -6,6 +6,7 @@ import { ToastProvider } from "../../context/ToastContext";
 import { MAX_STEP, PATHS, type RouteHandle } from "../../router/paths";
 import { BackIcon } from "../ui/Icons";
 import CargaCatalogo from "../../features/booking/CargaCatalogo";
+import { useMetaPixel } from "../../features/analytics/useMetaPixel";
 
 /**
  * El marco: nav con atrás e idioma, barra de progreso, y la pantalla activa.
@@ -21,6 +22,9 @@ export default function AppLayout() {
   const matches = useMatches();
   const [scrolled, setScrolled] = useState(false);
   const { lang, cambiarIdioma, t } = useApp();
+
+  // Acá y no en una pantalla: el marco es lo único que ve todos los pasos.
+  useMetaPixel();
 
   const step = (matches.at(-1)?.handle as RouteHandle | undefined)?.step ?? 0;
   // "default" es la primera entrada del historial: no hay a dónde volver.

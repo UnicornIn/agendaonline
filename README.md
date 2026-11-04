@@ -28,6 +28,7 @@ Copia `.env.example` a `.env.local` (o edita `.env.development` / `.env.producti
 | `VITE_ROUTER_MODE` | `browser` (URLs limpias, requiere rewrite a `index.html`) o `hash` |
 | `VITE_ROUTER_BASENAME` / `VITE_PUBLIC_BASE` | Si la app vive en un subdirectorio |
 | `VITE_DEV_PROXY_TARGET` | En desarrollo, proxy del prefijo a este backend (evita CORS) |
+| `VITE_META_PIXEL_ID` | Píxel de Meta. Vacío = no se carga (así está en desarrollo) |
 
 La sede **no** se configura acá: la fija el servidor. Un `sede_id` que venga del navegador es un
 `sede_id` que cualquiera puede cambiar.
@@ -63,6 +64,51 @@ src/
   router/       rutas, guards y paths
   types/        tipos compartidos
 ```
+
+## Medición (Meta Pixel)
+
+El script base está en `index.html`, donde Meta lo quiere: arranca con el HTML y manda el PageView
+de la primera carga. El id sale de `%VITE_META_PIXEL_ID%` y el snippet está envuelto en un `if`: sin
+un id válido no carga nada. En desarrollo la variable va vacía a propósito, para que las pruebas del
+equipo no entren a los informes de la cuenta de anuncios. Para probar en local, el id va en
+`.env.development.local` —no en `.env.local`, que pierde contra el archivo del modo.
+
+Todo lo demás vive en [`src/lib/metaPixel.ts`](src/lib/metaPixel.ts).
+
+| Cuándo | Evento | Dónde se dispara |
+|---|---|---|
+| Cada paso del flujo | `PageView` | `useMetaPixel`, en `AppLayout` |
+| Vio el servicio con su precio | `ViewContent` | `DetailPage` |
+| Eligió día y hora y siguió | `InitiateCheckout` | `DatePage` |
+| **La conversión**: la agenda confirmó la cita | `Schedule` | `DepositPage` |
+
+Cuatro decisiones que conviene no deshacer sin pensarlas:
+
+- **El PageView de la primera carga lo manda `index.html`, no el hook.** Si lo mandaran los dos,
+  toda visita empezaría con dos y la portada parecería el doble de visitada.
+- **`Schedule` se manda cuando la agenda responde OK, nunca al tocar el botón.** Un clic no es una
+  cita, y una cita que falló contada como conversión le enseña a Meta a buscar gente que no agenda.
+- **No se le manda a Meta el nombre, el celular ni el correo.** El *advanced matching* los acepta
+  hasheados, pero esa decisión es del negocio y, si se toma, se implementa en el servidor.
+- **`value` solo cuando el precio es exacto.** Con el diagnóstico a medias el precio es un rango, y
+  mandar la punta baja como valor le enseña a Meta un ticket promedio que el salón no cobra.
+
+### La Conversions API
+
+El píxel se pierde seguido —bloqueadores, Safari en iPhone—, así que la conversión se manda también
+desde el servidor. Lo que pone este repo es el puente:
+
+- `asegurarFbc()` corre en `main.tsx` antes del render, y por eso antes de que el router toque la
+  URL: `fbclid` viene en el enlace del anuncio y desaparece en el primer paso.
+- `obtenerContextoMeta()` devuelve `{ fbp, fbc, event_source_url, client_user_agent }`, que es lo
+  que hace que el evento del servidor no llegue anónimo.
+- El `citaId` viaja como `eventID` en `Schedule`. El backend manda ese mismo id y Meta deduplica.
+
+Va **apagado** (`MANDAR_CONTEXTO_META = false` en `src/lib/metaPixel.ts`) hasta que
+`app/selfbooking/` acepte el campo `meta` en `POST /cita`: un campo que el servidor no espera puede
+hacerle rechazar la petición, y la clienta perdería la cita por una métrica. El token de la
+Conversions API **no va en este repo** —es público, y cualquier `VITE_*` queda a la vista en el
+JavaScript que descarga el navegador—: va como variable de entorno del backend.
 
 ## El backend
 

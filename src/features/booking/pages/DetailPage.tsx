@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ABONO, adicionalesDe, buscarServicio, ETIQUETA_GRUPO } from "../../../data/catalog";
 import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
 import { hhmm, money, resolver } from "../../../lib/pricing";
+import { trackViewContent } from "../../../lib/metaPixel";
 import {
   BlockNote, Button, Callout, CheckList, Html, Kicker, Label, PriceBox, Sticky, Title,
 } from "../../../components/ui";
@@ -26,6 +28,18 @@ export default function DetailPage() {
     : s.tiempo ? `${t("duracionAprox")} · ${s.tiempo}` : "";
 
   const siguiente = adicionalesDe(s).length ? PATHS.extras : PATHS.date;
+
+  // Acá y no al tocar la tarjeta del menú: el servicio que se elige allá
+  // todavía no tiene precio —falta el diagnóstico—, y un ViewContent sin valor
+  // no le sirve a Meta para aprender qué clienta vale la pena buscar. Esta es
+  // la primera pantalla donde el precio es el de verdad.
+  useEffect(() => {
+    trackViewContent({
+      servicio: s.nombre,
+      precio: r.n,
+      ids: r.servicioId ? [r.servicioId] : undefined,
+    });
+  }, [s.nombre, r.n, r.servicioId]);
 
   return (
     <>

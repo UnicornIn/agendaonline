@@ -6,6 +6,7 @@ import { useApp } from "../../../context/AppContext";
 import { useToast } from "../../../context/ToastContext";
 import { PATHS } from "../../../router/paths";
 import { calcularTotal, money, saldo } from "../../../lib/pricing";
+import { MANDAR_CONTEXTO_META, obtenerContextoMeta, trackSchedule } from "../../../lib/metaPixel";
 import { Button, Label, Sub, Title } from "../../../components/ui";
 
 /**
@@ -73,8 +74,24 @@ export default function DepositPage() {
           celular: `${reserva.pais}${reserva.tel}`.replace("+", ""),
           correo: reserva.correo || null,
         },
+        // Las cookies de Meta, para que la copia del evento que manda el
+        // backend por la Conversions API no llegue anónima. Apagado hasta que
+        // el backend acepte el campo: mandar algo que no espera puede hacerle
+        // rechazar la cita entera.
+        meta: MANDAR_CONTEXTO_META ? obtenerContextoMeta() : undefined,
       });
       if (!vivo.current) return;
+
+      // La conversión, acá y no en el clic del botón: un clic no es una cita.
+      // Solo con el `citaId` en la mano hubo cita de verdad, y ese id es el
+      // que deduplica contra el evento que manda el servidor.
+      trackSchedule({
+        servicio: total.labels.join(" + "),
+        precio: total.n,
+        ids: total.servicioIds,
+        reservaId: cita.citaId,
+      });
+
       actualizar({ comprobante: { nombre: f.name, url } });
       navigate(PATHS.done, { replace: true, state: { citaId: cita.citaId } });
     } catch {
