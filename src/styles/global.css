@@ -193,6 +193,47 @@ a.btn{display:block;box-sizing:border-box;text-align:center;text-decoration:none
 .day .dm{font-size:10px;color:var(--muted);text-transform:uppercase}
 .day.sel{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .day.sel .dw,.day.sel .dm{color:var(--bg);opacity:.65}
+
+/* ---------- Calendario de mes ---------- */
+/* Va dentro de la pagina, debajo de la tira, y no en una capa encima: ver
+   CalendarioMes.tsx. */
+.calbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 14px}
+/* .linkbtn trae width:100% para los botones de texto que van solos en su
+   linea. Aca comparte renglon con el boton del calendario, y ese 100% le
+   comia el ancho hasta partirle el texto en dos. */
+.calbar .linkbtn{width:auto;padding:10px 0;text-align:right}
+.calabrir{
+  flex:none;white-space:nowrap;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;
+  padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:transform .12s var(--ease);
+}
+.calabrir:active{transform:scale(.95)}
+.calabrir.abierto{background:var(--surface)}
+.cal{border:1px solid var(--line);border-radius:16px;padding:12px 10px 14px;margin-bottom:16px}
+.calhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.calmes{font-size:14.5px;font-weight:700;text-transform:capitalize}
+.calnav{
+  width:38px;height:38px;flex:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+  border-radius:50%;display:grid;place-items:center;cursor:pointer;
+}
+.calnav:disabled{opacity:.3;cursor:not-allowed}
+.calnav.izq svg{transform:rotate(180deg)}
+.caldow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:2px}
+.caldow span{text-align:center;font-size:10.5px;color:var(--muted);text-transform:uppercase}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+/* El cuadrado es lo que le da el area de toque: a siete columnas dentro de
+   430px cada celda queda en unos 50px, que es un dedo. */
+.calday{
+  aspect-ratio:1;border:0;background:transparent;color:var(--ink);border-radius:11px;
+  font-family:inherit;font-size:14.5px;cursor:pointer;transition:transform .12s var(--ease);
+}
+.calday:active{transform:scale(.9)}
+/* Un dia que no se puede tocar tiene que VERSE asi, igual que en la tira. */
+.calday:disabled{opacity:.28;cursor:not-allowed;text-decoration:line-through}
+.calday.sel{background:var(--ink);color:var(--bg);font-weight:700}
+.calhueco{display:block}
+
 .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
 .slot{
   border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:11px;padding:12px 0;

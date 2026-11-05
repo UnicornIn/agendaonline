@@ -3,6 +3,8 @@ export interface BusinessConfig {
   hoursText: string;
   /** Cuántos días hacia adelante se pueden ver. El backend manda el suyo en /config. */
   diasAdelanteFallback: number;
+  /** Hasta dónde llega el calendario, contado desde hoy. */
+  diasAdelanteMaximo: number;
   /** Si la pantalla de identificación pide el nombre además del contacto. */
   pedirNombreEnLogin: boolean;
   /** El WhatsApp del agente, solo dígitos con indicativo, como lo quiere wa.me */
@@ -23,6 +25,18 @@ export const business: Readonly<BusinessConfig> = Object.freeze({
   brand: "Rizos Felices",
   hoursText: "Atendemos con cita previa, de lunes a sábado de 9:00 a.m. a 6:00 p.m.",
   diasAdelanteFallback: 16,
+
+  // Hasta dónde deja escoger el calendario. La tira sigue mostrando los
+  // dieciséis días de siempre, que es donde cae casi todo; esto es el techo
+  // de lo OTRO, la clienta que quiere su color para dentro de dos meses y
+  // antes no tenía dónde pedirlo.
+  //
+  // Noventa días es criterio de operación, no una medición. Vale la pena
+  // saber que HOY NADIE LO EXIGE DEL LADO DEL SERVIDOR: el backend valida la
+  // fecha pero no qué tan lejos está, así que este número es una cortesía de
+  // la pantalla y no un candado. Subirlo mucho es ofrecer horas que dependen
+  // de un horario que la sede todavía no ha escrito.
+  diasAdelanteMaximo: 90,
 
   // Apagado desde el 2026-10-27, por decisión de operación. El campo dejaba
   // por fuera a la clienta que escribe "Juanita" cuando la sede la guardó
