@@ -16,6 +16,9 @@ import { useApp } from "../../context/AppContext";
  * El título y el detalle vienen del backend, con las mismas palabras que
  * acompañan la regla que él aplica al cobrar. En inglés se traducen acá
  * porque el backend solo los manda en español.
+ *
+ * Vive DENTRO de la sección que scrollea, así que se va con el contenido al
+ * bajar y vuelve al subir. Ver el comentario en `AppLayout`.
  */
 export default function BannerPromocion() {
   const { lang, reserva, t } = useApp();

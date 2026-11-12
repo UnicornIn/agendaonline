@@ -6,6 +6,7 @@ import { PAISES } from "../../../data/catalog";
 import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
 import { calcularTotal } from "../../../lib/pricing";
+import ValorConDescuento from "../ValorConDescuento";
 import { fechaISOBonita } from "../../../lib/dates";
 import { isEmail, isFullName } from "../../../lib/validation";
 import {
@@ -98,7 +99,7 @@ export default function ConfirmPage() {
       <SummaryTable
         rows={[
           [reserva.extras.length ? t("servicios") : t("servicio"), total.labels.join(" + ")],
-          [t("valor"), total.precio],
+          [t("valor"), <ValorConDescuento reserva={reserva} precioDeLista={total.precio} />],
           total.tiempo ? [t("bloque"), total.tiempo] : null,
           [t("cuando"), `${fechaISOBonita(reserva.fecha, lang)} · ${reserva.hora}`],
           [t("con"), reserva.estilista ?? t("primeraDisp")],

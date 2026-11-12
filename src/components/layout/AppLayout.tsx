@@ -59,15 +59,20 @@ export default function AppLayout() {
               puerta ahí dentro volvería a pedir el catálogo en cada pantalla.
               Acá se monta una vez y se pide una vez. */}
           <CargaCatalogo>
-            {/* Fuera de <main> y fuera de la sección con `key`: así no se
-                vuelve a montar —ni a animar— en cada paso del flujo. */}
-            <BannerPromocion />
             <main className="screens">
               <section
                 key={location.pathname}
                 className={`screen active${navType === "POP" ? " back-anim" : ""}`}
                 onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 6)}
               >
+                {/* DENTRO de la sección que scrollea, a propósito: así se va
+                    con el contenido al bajar y vuelve al subir, sin JS que
+                    rastree la dirección.
+                    Esa versión existió y se devolvió: replegarlo cambiaba la
+                    altura del área que scrollea, el navegador ajustaba
+                    `scrollTop`, y eso llegaba como un evento de scroll hacia
+                    ARRIBA que lo volvía a abrir solo. */}
+                <BannerPromocion />
                 <Outlet />
               </section>
             </main>

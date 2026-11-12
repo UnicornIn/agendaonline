@@ -332,7 +332,7 @@ a.btn{display:block;box-sizing:border-box;text-align:center;text-decoration:none
    es lo que explica por qué el valor del final no es el de la lista. */
 .promo{
   display:flex; gap:10px; align-items:flex-start;
-  margin:10px 16px 0; padding:11px 14px;
+  margin:12px 0 2px; padding:11px 14px;
   border:1px solid var(--line); border-radius:12px;
   background:var(--pink-soft);
   font-size:12.5px; line-height:1.4; color:var(--muted);
@@ -344,6 +344,7 @@ a.btn{display:block;box-sizing:border-box;text-align:center;text-decoration:none
   color:var(--ink);
 }
 
+
 /* En la pantalla del abono, el antes y el después del descuento. */
 .promo-aplicado{
   display:flex; justify-content:space-between; gap:12px; align-items:baseline;
@@ -351,3 +352,10 @@ a.btn{display:block;box-sizing:border-box;text-align:center;text-decoration:none
 }
 .promo-aplicado b{color:var(--ink)}
 .promo-aplicado .tachado{text-decoration:line-through}
+
+/* El valor de lista, al lado del que se va a pagar. Gris, mas chico y con
+   peso normal: el ojo tiene que caer primero en el de abajo. */
+.antes{
+  color:var(--muted); font-weight:400; font-size:.86em;
+  margin-right:6px; text-decoration-thickness:1px;
+}

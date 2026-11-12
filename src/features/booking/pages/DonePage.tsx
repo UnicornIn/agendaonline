@@ -4,6 +4,7 @@ import { useApp } from "../../../context/AppContext";
 import { useHistorial } from "../useHistorial";
 import { PATHS } from "../../../router/paths";
 import { abonoDe, calcularTotal, money, saldo, totalACobrar } from "../../../lib/pricing";
+import ValorConDescuento from "../ValorConDescuento";
 import { fechaISOBonita } from "../../../lib/dates";
 import { descargarICS } from "../../../lib/calendar";
 import { Button, Stack, Sub, SummaryTable, Title } from "../../../components/ui";
@@ -73,7 +74,7 @@ export default function DonePage() {
           [reserva.extras.length ? t("servicios") : t("servicio"), total.labels.join(" + ")],
           [t("cuando"), cuando],
           [t("con"), quien],
-          [t("valor"), valor],
+          [t("valor"), <ValorConDescuento reserva={reserva} precioDeLista={total.precio} />],
           [t("abono"), abonado],
           [t("saldo"), restante],
         ]}
