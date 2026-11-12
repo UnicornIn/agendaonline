@@ -46,7 +46,8 @@ export default function MenuPage() {
     actualizar({ svc: id, extras: [] });
     if (!s?.matriz) return navigate(PATHS.detail);
     if (!reserva.dens) return navigate(PATHS.density);
-    navigate(reserva.plast ? PATHS.detail : PATHS.plasticity);
+    // Sin eje de plasticidad el diagnostico YA esta completo con la densidad.
+    navigate(reserva.plast || s.sinPlasticidad ? PATHS.detail : PATHS.plasticity);
   }
 
   return (

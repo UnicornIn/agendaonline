@@ -18,9 +18,12 @@ export default function DensityPage() {
   const { t, lang, reserva, actualizar } = useApp();
   const s = buscarServicio(reserva.svc);
 
+  // Una familia sin eje de plasticidad —el color— no pasa por el paso 2: ahí
+  // las dos opciones valen lo mismo y duran lo mismo, así que preguntarlo es
+  // pedirle a la clienta que decida algo que no decide nada.
   const elegir = (d: Densidad) => {
     actualizar({ dens: d });
-    navigate(PATHS.plasticity);
+    navigate(s?.sinPlasticidad ? PATHS.detail : PATHS.plasticity);
   };
 
   return (

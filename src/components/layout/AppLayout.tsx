@@ -6,6 +6,7 @@ import { ToastProvider } from "../../context/ToastContext";
 import { MAX_STEP, PATHS, type RouteHandle } from "../../router/paths";
 import { BackIcon } from "../ui/Icons";
 import CargaCatalogo from "../../features/booking/CargaCatalogo";
+import BannerPromocion from "../../features/booking/BannerPromocion";
 import { useMetaPixel } from "../../features/analytics/useMetaPixel";
 
 /**
@@ -58,6 +59,9 @@ export default function AppLayout() {
               puerta ahí dentro volvería a pedir el catálogo en cada pantalla.
               Acá se monta una vez y se pide una vez. */}
           <CargaCatalogo>
+            {/* Fuera de <main> y fuera de la sección con `key`: así no se
+                vuelve a montar —ni a animar— en cada paso del flujo. */}
+            <BannerPromocion />
             <main className="screens">
               <section
                 key={location.pathname}

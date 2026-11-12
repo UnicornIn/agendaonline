@@ -52,7 +52,10 @@ export default function HistorialPage() {
       hora: null,
     });
     if (falta) {
-      navigate(historial!.dens ? PATHS.plasticity : PATHS.density);
+      // Lo que falta de un servicio sin eje de plasticidad solo puede ser la
+      // densidad: mandarla al paso 2 la dejaba en una pantalla con las dos
+      // opciones cerradas y sin a donde seguir.
+      navigate(historial!.dens && !s?.sinPlasticidad ? PATHS.plasticity : PATHS.density);
       return;
     }
     navigate(adicionalesDe(s).length ? PATHS.extras : PATHS.date);

@@ -321,3 +321,34 @@ a.btn{display:block;box-sizing:border-box;text-align:center;text-decoration:none
   max-width:90%;text-align:center;z-index:5;
 }
 .toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* --- El beneficio de la campaña de reactivación ---------------------------
+   Debajo de la barra de progreso y encima del flujo. No es un toast: tiene
+   que quedarse ahí mientras ella escoge, porque es lo que explica por qué el
+   valor del final no es el de la lista. */
+.promo-banner {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin: 0 16px 2px;
+  padding: 10px 13px;
+  border-radius: 12px;
+  background: var(--promo-bg, #f3ece1);
+  border: 1px solid var(--promo-bd, #e2d3bd);
+  color: var(--promo-fg, #5b4a33);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.promo-banner b { font-weight: 600; }
+.promo-icon { line-height: 1.35; opacity: .75; }
+
+/* En la pantalla del abono, el antes y el después del descuento. */
+.promo-aplicado {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--promo-fg, #5b4a33);
+}
+.promo-aplicado .tachado { text-decoration: line-through; opacity: .6; }

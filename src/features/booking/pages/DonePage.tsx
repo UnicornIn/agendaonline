@@ -1,10 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { ABONO } from "../../../data/catalog";
 import { business } from "../../../config";
 import { useApp } from "../../../context/AppContext";
 import { useHistorial } from "../useHistorial";
 import { PATHS } from "../../../router/paths";
-import { calcularTotal, money, saldo } from "../../../lib/pricing";
+import { abonoDe, calcularTotal, money, saldo, totalACobrar } from "../../../lib/pricing";
 import { fechaISOBonita } from "../../../lib/dates";
 import { descargarICS } from "../../../lib/calendar";
 import { Button, Stack, Sub, SummaryTable, Title } from "../../../components/ui";
@@ -28,10 +27,18 @@ export default function DonePage() {
   const cuando = `${fechaISOBonita(reserva.fecha, lang)} · ${reserva.hora}`;
   const quien = reserva.estilista ?? t("primeraDisp");
   const restante = saldo(reserva, t("elResto"));
+  // El del bloque, no un 50.000 fijo: esta cifra va en el mensaje que recibe
+  // la sede y en el Purchase de Meta, y las dos tienen que decir lo mismo que
+  // la pantalla del abono y que la cita en la agenda.
+  const abonado = money(abonoDe(reserva));
+  // El valor con el descuento ya aplicado, si le tocó. `total.precio` es el
+  // de lista y aquí ya no sirve: la sede necesita ver lo que de verdad se le
+  // va a cobrar, que es lo que quedó escrito en la cita.
+  const valor = money(totalACobrar(reserva) ?? 0);
 
   const aviso = lang === "es"
-    ? `Cliente agendó cita\n${reserva.nombre} · ${reserva.pais} ${reserva.tel}\n${total.labels.join(" + ")}\n${cuando} · ${quien}\nValor ${total.precio} · Abono ${money(ABONO)} · Saldo ${restante}\nComprobante adjunto · confirmar abono`
-    : `Client booked an appointment\n${reserva.nombre} · ${reserva.pais} ${reserva.tel}\n${total.labels.join(" + ")}\n${cuando} · ${quien}\nTotal ${total.precio} · Deposit ${money(ABONO)} · Balance ${restante}\nReceipt attached · confirm deposit`;
+    ? `Cliente agendó cita\n${reserva.nombre} · ${reserva.pais} ${reserva.tel}\n${total.labels.join(" + ")}\n${cuando} · ${quien}\nValor ${valor} · Abono ${abonado} · Saldo ${restante}\nComprobante adjunto · confirmar abono`
+    : `Client booked an appointment\n${reserva.nombre} · ${reserva.pais} ${reserva.tel}\n${total.labels.join(" + ")}\n${cuando} · ${quien}\nTotal ${valor} · Deposit ${abonado} · Balance ${restante}\nReceipt attached · confirm deposit`;
 
   function agendarOtra() {
     // Se suelta también el historial: la siguiente cita puede ser de otra
@@ -49,7 +56,7 @@ export default function DonePage() {
       hora: reserva.hora,
       durationMins: total.mins || 90,
       location: `${business.brand} · ${t("sede")}`,
-      description: `${t("valor")} ${total.precio} · ${t("abono")} ${money(ABONO)}`,
+      description: `${t("valor")} ${valor} · ${t("abono")} ${abonado}`,
     });
   }
 
@@ -66,8 +73,8 @@ export default function DonePage() {
           [reserva.extras.length ? t("servicios") : t("servicio"), total.labels.join(" + ")],
           [t("cuando"), cuando],
           [t("con"), quien],
-          [t("valor"), total.precio],
-          [t("abono"), money(ABONO)],
+          [t("valor"), valor],
+          [t("abono"), abonado],
           [t("saldo"), restante],
         ]}
       />

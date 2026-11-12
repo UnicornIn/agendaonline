@@ -46,6 +46,8 @@ export interface Adicional {
   t?: string;
   /** Su `servicio_id` en la agenda. Un adicional también es un servicio. */
   servicioId?: string;
+  /** La categoría de la agenda. Decide el abono: ver `abono()`. */
+  categoria?: string | null;
 }
 
 export interface Servicio {
@@ -74,7 +76,39 @@ export interface Servicio {
    * diagnóstico; uno sin ella tiene precio y tiempo fijos.
    */
   matriz?: FilaMatriz[];
+  /**
+   * La familia varía por densidad y por NADA más: no hay P.A ni P.B.
+   *
+   * Es el color. El precio sube con cuánto cabello hay, y qué tanto le cueste
+   * al rizo formarse no cambia ni el valor ni el tiempo. Sin esta marca no se
+   * distingue del otro caso en que la columna P.B viene vacía —"definición
+   * sencilla no se presta para plasticidades bajas"—, que sí tiene el eje y
+   * por eso sí hay que preguntarlo y mostrar la opción cerrada.
+   */
+  sinPlasticidad?: boolean;
+  /** La categoría de la agenda ("Colorimetria", "Completo"…). No se muestra:
+   *  decide cuánto se abona para apartar el cupo. Ver `abono()`. */
+  categoria?: string | null;
   adicionales?: Adicional[];
+}
+
+/** La campaña de reactivación vigente. La manda `GET /config`: el porcentaje
+ *  y las fechas son las mismas que aplica el backend al cobrar, y los textos
+ *  viven allá para que no queden dos versiones diciendo cosas distintas. */
+export interface Campana {
+  campana: string;
+  porcentaje: number;
+  /** YYYY-MM-DD, los dos inclusive */
+  desde: string;
+  hasta: string;
+  titulo: string;
+  detalle: string;
+  aviso: string;
+}
+
+export interface ConfigAgenda {
+  abono: { porDefecto: number; porCategoria: Record<string, number> };
+  promocion: Campana;
 }
 
 /** Precio y tiempo ya resueltos para un diagnóstico concreto */
@@ -105,6 +139,9 @@ export type Modo = "cliente" | "nueva";
 
 export interface Reserva {
   modo: Modo | null;
+  /** Si a quien se identificó le toca el beneficio de la campaña. Sale del
+   *  historial y lo decide el backend; acá solo se guarda para pintar. */
+  promocion: boolean;
   /** Por dónde se identificó */
   via: "tel" | "mail";
   /** Indicativo con "+", p. ej. "+57" */
@@ -170,4 +207,9 @@ export interface Historial {
   plast: Plasticidad | null;
   correo: string;
   servicios: ServicioPasado[];
+  /** Si a este teléfono le toca el beneficio de la campaña. Lo decide el
+   *  backend sobre TODAS las fichas que comparten el número, no solo sobre
+   *  la que ganó el desempate: hay invitadas que comparten su celular con
+   *  una hija o una madre que gana. */
+  promocion: boolean;
 }

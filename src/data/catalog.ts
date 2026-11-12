@@ -58,9 +58,6 @@ export const PAISES: Array<[codigo: string, bandera: string, digitos: number]> =
   ["+593", "🇪🇨", 9], ["+507", "🇵🇦", 8],
 ];
 
-/** Lo que se abona para apartar el cupo, y se descuenta del total */
-export const ABONO = 50_000;
-
 /**
  * Datos de pago de la sede.
  *

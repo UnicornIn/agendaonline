@@ -140,6 +140,19 @@ export const TEXTOS = {
   abonoSub: ["Haz el abono, sube la foto del comprobante y tu cita queda confirmada al instante.",
              "Pay the deposit, upload the receipt photo and your appointment is confirmed right away."],
   abono: ["Abono", "Deposit"],
+  // --- la campaña de reactivación ---
+  // El título, el detalle y el aviso de fechas los manda el backend en
+  // español: son los mismos textos que acompañan la regla que él aplica al
+  // cobrar, y tenerlos acá sería garantizar que algún día digan cosas
+  // distintas. Lo de abajo es solo la traducción al inglés y las etiquetas.
+  promoAviso: ["",
+    "Valid only for appointments taking place between November 12 and 30, 2026; "
+    + "an appointment booked in November for December gets no discount."],
+  promoTitulo: ["", "You have a special benefit"],
+  promoDetalle: ["", "20% off all our services."],
+  promoAplicado: ["Beneficio aplicado", "Benefit applied"],
+  promoAhorras: ["Ahorras %s", "You save %s"],
+  promoAntes: ["Antes %s", "Was %s"],
   pagasSalon: ["Pagas %s en el salón", "You pay %s at the salon"],
   saldo: ["Pagas en el salón", "You pay at the salon"],
   elResto: ["el resto", "the rest"],
