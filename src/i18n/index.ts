@@ -150,8 +150,9 @@ export const TEXTOS = {
   // cobrar, y tenerlos acá sería garantizar que algún día digan cosas
   // distintas. Lo de abajo es solo la traducción al inglés y las etiquetas.
   promoAviso: ["",
-    "Valid only for appointments taking place between November 12 and 30, 2026; "
-    + "an appointment booked in November for December gets no discount."],
+    "Your 20% discount applies only to appointments taking place between "
+    + "November 12 and 30, 2026. An appointment booked in November for "
+    + "December gets no discount."],
   promoTitulo: ["", "You have a special benefit"],
   promoDetalle: ["", "20% off all our services."],
   promoAplicado: ["Beneficio aplicado", "Benefit applied"],

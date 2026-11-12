@@ -28,10 +28,13 @@ export default function BannerPromocion() {
   if (!porcentaje) return null;
 
   return (
-    <div className="promo-banner" role="status">
-      <span className="promo-icon" aria-hidden="true">★</span>
+    <div className="promo" role="status">
+      <span className="pin" aria-hidden="true">★</span>
       <div>
-        <b>{lang === "es" ? titulo : t("promoTitulo")}</b>{" "}
+        {/* El titulo en su propia linea. Pegado al detalle se leia como una
+            sola frase sin verbo: "Tienes un beneficio especial 20% de
+            descuento en todos nuestros servicios." */}
+        <b>{lang === "es" ? titulo : t("promoTitulo")}</b>
         <span>{lang === "es" ? detalle : t("promoDetalle")}</span>
       </div>
     </div>

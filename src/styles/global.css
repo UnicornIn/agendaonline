@@ -322,33 +322,32 @@ a.btn{display:block;box-sizing:border-box;text-align:center;text-decoration:none
 }
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
-/* --- El beneficio de la campaña de reactivación ---------------------------
-   Debajo de la barra de progreso y encima del flujo. No es un toast: tiene
-   que quedarse ahí mientras ella escoge, porque es lo que explica por qué el
-   valor del final no es el de la lista. */
-.promo-banner {
-  display: flex;
-  gap: 9px;
-  align-items: flex-start;
-  margin: 0 16px 2px;
-  padding: 10px 13px;
-  border-radius: 12px;
-  background: var(--promo-bg, #f3ece1);
-  border: 1px solid var(--promo-bd, #e2d3bd);
-  color: var(--promo-fg, #5b4a33);
-  font-size: 13px;
-  line-height: 1.35;
+/* ---------- El beneficio de la campaña ----------
+   Mismo idioma que `.perfil` —caja con borde y micro-etiqueta en
+   versalitas—, porque dice lo mismo: un dato de ELLA, destacado. La primera
+   versión era un bloque crema con texto oscuro: en modo oscuro quedaba como
+   un parche pegado encima de la web.
+
+   Va entre la barra de progreso y el flujo, y se queda ahí mientras escoge:
+   es lo que explica por qué el valor del final no es el de la lista. */
+.promo{
+  display:flex; gap:10px; align-items:flex-start;
+  margin:10px 16px 0; padding:11px 14px;
+  border:1px solid var(--line); border-radius:12px;
+  background:var(--pink-soft);
+  font-size:12.5px; line-height:1.4; color:var(--muted);
 }
-.promo-banner b { font-weight: 600; }
-.promo-icon { line-height: 1.35; opacity: .75; }
+.promo .pin{color:var(--pink); font-size:13px; line-height:1.25}
+.promo b{
+  display:block; margin-bottom:2px;
+  font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink);
+}
 
 /* En la pantalla del abono, el antes y el después del descuento. */
-.promo-aplicado {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--promo-fg, #5b4a33);
+.promo-aplicado{
+  display:flex; justify-content:space-between; gap:12px; align-items:baseline;
+  margin-top:10px; font-size:12.5px; color:var(--muted);
 }
-.promo-aplicado .tachado { text-decoration: line-through; opacity: .6; }
+.promo-aplicado b{color:var(--ink)}
+.promo-aplicado .tachado{text-decoration:line-through}
