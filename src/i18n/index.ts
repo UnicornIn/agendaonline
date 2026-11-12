@@ -22,6 +22,11 @@ export const TEXTOS = {
   btnCliente: ["Ya soy cliente de Rizos Felices", "I'm already a client"],
   btnPrimera: ["Cita primera vez", "First-time appointment"],
   btnAgente: ["Prefiero ser atendida por un agente", "I'd rather talk to an agent"],
+  ayudaDudas: ["¿Tienes dudas? Escríbenos por WhatsApp", "Questions? Message us on WhatsApp"],
+  saludoDudas: [
+    "Hola, estoy agendando por la página y tengo una duda.",
+    "Hi, I'm booking on the website and I have a question.",
+  ],
   saludoAgente: [
     "Hola, vengo de la página de agendamiento y prefiero que me atienda un agente.",
     "Hi, I came from the booking page and I'd rather be helped by an agent.",

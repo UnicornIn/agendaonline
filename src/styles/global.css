@@ -44,6 +44,31 @@ h1,h2,h3{font-family:"Antonio",sans-serif;font-weight:600;letter-spacing:.01em;m
 .protolabel{font-size:11.5px;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;display:none}
 @media (min-width:900px){.protolabel{display:block}}
 
+/* ---------- WhatsApp de dudas ---------- */
+/* Contra `.device`, que es el marco; ver el comentario de AyudaWhatsApp.tsx.
+
+   El `bottom` sale de una cuenta, no de un numero bonito: la banda del boton
+   Continuar mide 89px desde el borde de abajo —28 del padding de `.screen`,
+   6 del de `.sticky` y 55 del boton—, y el flotante tiene que quedar POR
+   ENCIMA de eso o le tapa el borde derecho a la accion principal. Con 86px se
+   solapaba 3px en una pantalla de 600px de alto, que es un telefono comun.
+   Los 17px de sobra son el respiro. Si algun dia el CTA crece, este numero
+   crece con el. */
+.ayuda{
+  position:absolute; right:12px; bottom:106px; z-index:5;
+  width:44px; height:44px; border-radius:50%;
+  display:grid; place-items:center;
+  background:var(--surface); color:var(--ink); border:1px solid var(--line);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  opacity:.45; transition:opacity .2s, transform .12s var(--ease);
+}
+.ayuda:hover,.ayuda:focus-visible{opacity:1}
+.ayuda:active{transform:scale(.93); opacity:1}
+/* Sin hover que lo despierte, en el telefono se queda atenuado para siempre:
+   un pelin mas de presencia para que siga siendo legible sobre el contenido. */
+@media (hover:none){.ayuda{opacity:.6}}
+@media (prefers-reduced-motion:reduce){.ayuda{transition:none}}
+
 /* ---------- Nav ---------- */
 .nav{height:50px;flex:none;display:flex;align-items:center;gap:6px;padding:0 10px 0 4px;border-bottom:1px solid transparent;transition:border-color .2s}
 .nav.scrolled{border-color:var(--line)}

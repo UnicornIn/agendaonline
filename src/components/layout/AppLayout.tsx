@@ -5,6 +5,7 @@ import { useApp } from "../../context/AppContext";
 import { ToastProvider } from "../../context/ToastContext";
 import { MAX_STEP, PATHS, type RouteHandle } from "../../router/paths";
 import { BackIcon } from "../ui/Icons";
+import AyudaWhatsApp from "./AyudaWhatsApp";
 import CargaCatalogo from "../../features/booking/CargaCatalogo";
 import BannerPromocion from "../../features/booking/BannerPromocion";
 import { useMetaPixel } from "../../features/analytics/useMetaPixel";
@@ -77,6 +78,10 @@ export default function AppLayout() {
               </section>
             </main>
           </CargaCatalogo>
+          {/* Fuera de `.screens` y por tanto fuera de la seccion que se
+              remonta en cada paso: asi no se re-anima en cada pantalla ni se
+              va con el scroll. Flota contra el marco, quieto. */}
+          <AyudaWhatsApp />
         </ToastProvider>
       </div>
     </div>

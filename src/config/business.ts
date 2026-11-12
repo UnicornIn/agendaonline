@@ -9,6 +9,8 @@ export interface BusinessConfig {
   pedirNombreEnLogin: boolean;
   /** El WhatsApp del agente, solo dígitos con indicativo, como lo quiere wa.me */
   whatsappAgente: string;
+  /** El WhatsApp de dudas: el botón flotante que acompaña todo el flujo. */
+  whatsappDudas: string;
 }
 
 /**
@@ -50,4 +52,9 @@ export const business: Readonly<BusinessConfig> = Object.freeze({
   // +57 312 696 7066. Es una persona de verdad contestando, no un bot: por eso
   // el botón sale de la app en vez de abrir una pantalla propia.
   whatsappAgente: "573126967066",
+
+  // +57 314 719 3009. No es el del agente: este no agenda, resuelve dudas de
+  // quien está a mitad del flujo y no sabe cuál servicio es el suyo. Por eso
+  // el botón acompaña todas las pantallas en vez de vivir en la portada.
+  whatsappDudas: "573147193009",
 });
