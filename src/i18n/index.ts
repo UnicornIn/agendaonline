@@ -82,6 +82,10 @@ export const TEXTOS = {
                   "No stylist at this salon performs every service you picked."],
   paso1: ["Paso 1 de 2 · Tu cabello", "Step 1 of 2 · Your hair"],
   paso2: ["Paso 2 de 2 · Tu cabello", "Step 2 of 2 · Your hair"],
+  // Las familias sin eje de plasticidad —el color— tienen UN solo paso de
+  // diagnóstico. Decirle "paso 1 de 2" y mandarla derecho al detalle la deja
+  // esperando una pantalla que no va a llegar.
+  pasoUnico: ["Tu cabello", "Your hair"],
   densTitulo: ["¿Cuánto cabello<br>tienes?", "How much hair<br>do you have?"],
   densSub: ["A eso le decimos densidad: no es qué tan grueso es cada hilo, sino cuántos hilos tienes. Mira las fotos y toca la que se parezca al tuyo, suelto y seco.",
             "That's density: not how thick each strand is, but how many strands you have. Look at the photos and tap the one closest to your hair, loose and dry."],

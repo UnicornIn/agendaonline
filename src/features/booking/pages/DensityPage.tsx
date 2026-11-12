@@ -28,7 +28,7 @@ export default function DensityPage() {
 
   return (
     <>
-      <Kicker style={{ marginTop: 14 }}>{t("paso1")}</Kicker>
+      <Kicker style={{ marginTop: 14 }}>{t(s?.sinPlasticidad ? "pasoUnico" : "paso1")}</Kicker>
       <TitleHtml html={t("densTitulo")} />
       <Sub>{t("densSub")}</Sub>
       <div className="four">
