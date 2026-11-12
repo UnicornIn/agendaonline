@@ -6,11 +6,12 @@ import { Button, ButtonLink, Kicker, Note, Stack, Sub, TitleHtml } from "../../.
 import { WhatsAppIcon } from "../../../components/ui/Icons";
 
 /**
- * La portada: tres entradas al mismo sitio.
+ * La portada: dos entradas al mismo sitio, y una tercera oculta.
  *
  * La tercera sale de la app: abre el WhatsApp del agente, una persona de
  * verdad. Antes abría un chat simulado dentro de la misma web, y eso promete
  * algo que no existe —la clienta escribe esperando que alguien le conteste—.
+ * Está apagada desde el 2026-11-12; ver `MOSTRAR_AGENTE`.
  *
  * "Ya soy cliente" es la primera porque es la que ahorra pasos: con el
  * historial no se vuelve a preguntar el diagnóstico ni los datos. "Primera
@@ -18,6 +19,15 @@ import { WhatsAppIcon } from "../../../components/ui/Icons";
  * sesión anterior en el mismo navegador no le cuelgue a otra persona el
  * cabello de quien agendó antes.
  */
+/**
+ * Si la portada ofrece el botón del agente.
+ *
+ * Apagado el 2026-11-12 por decisión de operación. Queda acá y no en una
+ * variable de entorno a propósito: prenderlo de vuelta es cambiar este `false`
+ * y desplegar, sin tocar la configuración del servidor.
+ */
+const MOSTRAR_AGENTE = false;
+
 export default function StartPage() {
   const navigate = useNavigate();
   const { t, actualizar } = useApp();
@@ -39,15 +49,17 @@ export default function StartPage() {
         <Button size="big" variant="ghost" onClick={primeraVez}>
           {t("btnPrimera")}
         </Button>
-        <ButtonLink
-          size="big"
-          variant="ghost"
-          href={`https://wa.me/${business.whatsappAgente}?text=${encodeURIComponent(t("saludoAgente"))}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <WhatsAppIcon />{t("btnAgente")}
-        </ButtonLink>
+        {MOSTRAR_AGENTE && (
+          <ButtonLink
+            size="big"
+            variant="ghost"
+            href={`https://wa.me/${business.whatsappAgente}?text=${encodeURIComponent(t("saludoAgente"))}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <WhatsAppIcon />{t("btnAgente")}
+          </ButtonLink>
+        )}
       </Stack>
       <Note style={{ marginTop: 20 }}>{t("horario")}</Note>
     </div>
