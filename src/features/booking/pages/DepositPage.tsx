@@ -6,6 +6,7 @@ import { useApp } from "../../../context/AppContext";
 import { useToast } from "../../../context/ToastContext";
 import { PATHS } from "../../../router/paths";
 import { abonoDe, calcularTotal, descuento, money, saldo } from "../../../lib/pricing";
+import ValorConDescuento from "../ValorConDescuento";
 import { MANDAR_CONTEXTO_META, obtenerContextoMeta, trackSchedule } from "../../../lib/metaPixel";
 import { Button, Label, Sub, Title } from "../../../components/ui";
 
@@ -87,7 +88,9 @@ export default function DepositPage() {
       // que deduplica contra el evento que manda el servidor.
       trackSchedule({
         servicio: total.labels.join(" + "),
-        precio: total.n,
+        // Lo que de verdad se cobró, no el de lista: con el de lista, Meta
+        // aprende a buscar clientas por un valor que el salón no facturó.
+        precio: promo.total,
         ids: total.servicioIds,
         reservaId: cita.citaId,
       });
@@ -210,7 +213,10 @@ export default function DepositPage() {
       )}
 
       {/* El total queda a la vista mientras paga: es el número que va a comparar */}
-      <p className="note">{total.labels.join(" + ")} · {total.precio}</p>
+      <p className="note">
+        {total.labels.join(" + ")} ·{" "}
+        <ValorConDescuento reserva={reserva} precioDeLista={total.precio} />
+      </p>
     </>
   );
 }
