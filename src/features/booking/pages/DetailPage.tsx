@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ABONO, adicionalesDe, buscarServicio, ETIQUETA_GRUPO } from "../../../data/catalog";
+import { adicionalesDe, buscarServicio, ETIQUETA_GRUPO } from "../../../data/catalog";
 import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
-import { hhmm, money, resolver } from "../../../lib/pricing";
+import { abonoDe, hhmm, money, resolver } from "../../../lib/pricing";
 import { trackViewContent } from "../../../lib/metaPixel";
 import {
   BlockNote, Button, Callout, CheckList, Html, Kicker, Label, PriceBox, Sticky, Title,
@@ -58,7 +58,7 @@ export default function DetailPage() {
         <BlockNote icon="⏱"><Html html={t("reservamos", { "%t": hhmm(r.mins) })} /></BlockNote>
       )}
       {s.nota && <Callout>{s.nota}</Callout>}
-      <BlockNote><Html html={t("avisoAbono", { "%a": money(ABONO) })} /></BlockNote>
+      <BlockNote><Html html={t("avisoAbono", { "%a": money(abonoDe(reserva)) })} /></BlockNote>
 
       <Sticky>
         <Button onClick={() => navigate(siguiente)}>{t("continuar")}</Button>

@@ -131,6 +131,56 @@ Resumen:
 | DELETE | `/retencion/:id` | Lo suelta si se devuelve |
 | POST | `/cita` | Identifica o crea la clienta y escribe la cita |
 
+## Desplegar a producción
+
+```bash
+npm run deploy
+```
+
+Compila, sube a S3 y le limpia el caché a CloudFront. El detalle de cada paso está en
+[`scripts/desplegar.ps1`](scripts/desplegar.ps1); esto es lo que hay que saber antes de correrlo.
+
+**No es solo un bucket.** `citas.rizosfelices.co` es un bucket **privado** —CloudFront entra con un
+Origin Access Control, nadie más— con la distribución `EKZ4P6ZAQ6T0A` delante. Por eso un
+`aws s3 sync` solo no se ve: el archivo queda en S3 al instante y CloudFront sigue sirviendo el
+viejo hasta un día. La invalidación **no hay que hacerla a mano en la consola**: el script la manda.
+
+**El bucket y la distribución están quemados en el script, a propósito.** El perfil `default` es
+administrador de la cuenta 975050131270 entera, y ahí al lado viven `agenda.rizosfelices.co` y
+`staging-app.rizosfelices.co`, que son otros sitios en vivo. Un nombre de bucket mal escrito no da
+error: crea o pisa otra cosa. Antes de subir nada, el script le pregunta a AWS de qué cuenta es el
+perfil y se detiene si no es la de Rizos.
+
+**El orden no es casual: primero los assets, de último el `index.html`.** El index nombra los assets
+por su hash; si subiera primero habría unos segundos en los que una clienta recibe el index nuevo y
+pide un `.js` que todavía no existe.
+
+**Y se sube cada cosa con su `Cache-Control`**, que hasta ahora los objetos no traían. Los assets
+llevan el hash en el nombre, así que son inmutables para siempre; el `index.html` se revalida cada
+vez. De ahí en adelante la invalidación es por si acaso, no el único camino.
+
+Las banderas van después de `--`, así: `npm run deploy -- -Prueba`.
+
+| Bandera | Para qué |
+|---|---|
+| `-Prueba` | No sube ni invalida nada: lista lo que haría. Úsalo si dudas. |
+| `-SaltarBuild` | Usa el `dist/` que ya está, sin volver a compilar. |
+| `-Limpiar` | Borra del bucket los assets que ya no están en `dist/`. |
+| `-NoEsperar` | No se queda esperando a que CloudFront termine de invalidar. |
+
+`-Limpiar` no viene prendido porque borrar los assets viejos rompe a la clienta que tiene la página
+abierta y todavía no ha pedido su `.js`. Dejarlos pesa poco; cuando el bucket junte basura, se corre
+una vez con `-Limpiar`.
+
+### Por qué no hay CI
+
+Se dejó por fuera a propósito, no por falta de tiempo. Las llaves de este perfil son de
+administrador de la cuenta entera: ponerlas en los secretos de GitHub Actions es darle a CI el poder
+de borrar cualquier cosa de la cuenta. Si se quiere desplegar al mergear, el primer paso no es
+escribir el workflow sino crear un usuario —o mejor, un rol por OIDC— que solo pueda escribir en ese
+bucket e invalidar esa distribución. Con eso hecho, el workflow es corto y este script sigue
+sirviendo para desplegar a mano.
+
 ## Pendientes con operación
 
 - **Los precios del catálogo curado no cuadran con los de la agenda.** La web muestra el de la

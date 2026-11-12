@@ -113,6 +113,10 @@ export default function IdentPage() {
       estilista: historial.estilista,
       dens: historial.dens,
       plast: historial.plast,
+      // La invitación de la campaña. Viaja en la reserva y no en el historial
+      // porque el banner tiene que seguir ahí aunque ella descarte "repetir
+      // lo de siempre" y se vaya al menú a escoger otra cosa.
+      promocion: historial.promocion,
       // El dato con el que NO entró se completa con el que tenga la agenda.
       correo: porTelefono ? historial.correo : correo.trim().toLowerCase(),
     });

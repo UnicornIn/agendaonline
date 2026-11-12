@@ -1,4 +1,5 @@
-import { ABONO, adicionalesDe, buscarServicio } from "../data/catalog";
+import { adicionalesDe, buscarServicio } from "../data/catalog";
+import { abono, campana, cubreLaFecha } from "../data/configAgenda";
 import type { Densidad, Plasticidad, Reserva, Resuelto, Servicio, Total } from "../types";
 
 /* =========================================================
@@ -59,12 +60,17 @@ export function resolver(
 ): Resuelto {
   if (!s) return { precio: "", n: null, mins: null, exacto: false, servicioId: null };
 
-  if (s.matriz && dens && plast) {
+  // `plast` puede faltar legítimamente: una familia sin ese eje —el color—
+  // nunca lo pregunta, y exigirlo acá la dejaba resolviendo por el camino del
+  // rango, o sea sin `servicioId`, o sea sin poder agendarse.
+  if (s.matriz && dens && (plast || s.sinPlasticidad)) {
     const fila = s.matriz.find((r) => r.d === dens);
     if (fila) {
-      const precio = plast === "pa" ? fila.pa : fila.pb;
-      const tiempo = plast === "pa" ? fila.ta : fila.tb;
-      const servicioId = plast === "pa" ? fila.idA : fila.idB;
+      // Sin eje, la única columna viva es P.A. Ver `armarMatriz`.
+      const esPb = plast === "pb";
+      const precio = esPb ? fila.pb : fila.pa;
+      const tiempo = esPb ? fila.tb : fila.ta;
+      const servicioId = esPb ? fila.idB : fila.idA;
       // "N/A" es una combinación que la casa no presta, no un precio.
       if (precio && precio.toUpperCase() !== "N/A") {
         return {
@@ -95,6 +101,10 @@ export function resolver(
 }
 
 type ParaCobrar = Pick<Reserva, "svc" | "dens" | "plast" | "extras">;
+
+/** Lo mismo más lo que hace falta para saber si le toca el descuento: si está
+ *  invitada y qué día es la cita. */
+type ParaCobrarConFecha = ParaCobrar & Pick<Reserva, "promocion" | "fecha">;
 
 /**
  * El total del bloque: el servicio principal más cada adicional.
@@ -135,8 +145,61 @@ export function calcularTotal(reserva: ParaCobrar): Total {
   };
 }
 
-/** Lo que queda por pagar en el salón después del abono */
-export function saldo(reserva: ParaCobrar, textoSiNoExacto: string): string {
+/**
+ * Lo que se abona por ESTE bloque.
+ *
+ * Se mira el principal y cada adicional elegido, porque el abono sale de la
+ * categoría y un adicional puede traer una más cara que el principal: una
+ * nivelación de color sobre un servicio que no es de color sube el abono a
+ * $90.000, igual que lo sube el backend al crear la cita.
+ *
+ * El abono NO se rebaja con la promoción: aparta el cupo, no es una fracción
+ * del servicio. Lo que baja es el saldo.
+ */
+export function abonoDe(reserva: ParaCobrar): number {
+  const s = buscarServicio(reserva.svc);
+  const elegidos = adicionalesDe(s).filter((a) => reserva.extras.includes(a.n));
+  return abono([s?.categoria, ...elegidos.map((a) => a.categoria)]);
+}
+
+/**
+ * El 20% de la campaña aplicado a este bloque, si corresponde.
+ *
+ * Dos condiciones, las mismas que mira el backend al cobrar: que esté
+ * invitada y que la CITA caiga en la ventana. Mientras no haya fecha elegida
+ * `aplica` es falso y se muestra el precio normal — que es lo correcto, porque
+ * todavía no se sabe si va a haber descuento.
+ *
+ * Esto PINTA; no decide. El precio que se cobra lo calcula el servidor en
+ * `POST /cita` con las mismas dos condiciones. Si los dos no coincidieran, el
+ * que manda es el servidor, y por eso el porcentaje y las fechas vienen de él.
+ */
+export function descuento(reserva: ParaCobrarConFecha): {
+  aplica: boolean;
+  porcentaje: number;
+  /** El total ya rebajado, o null si no hay cifra exacta todavía. */
+  total: number | null;
+  /** Lo que se ahorra, para poder decirlo. */
+  ahorro: number | null;
+} {
+  const { porcentaje } = campana();
   const t = calcularTotal(reserva);
-  return t.n != null ? money(t.n - ABONO) : textoSiNoExacto;
+  const aplica = Boolean(reserva.promocion) && cubreLaFecha(reserva.fecha);
+  if (!aplica || t.n == null) {
+    return { aplica, porcentaje, total: t.n, ahorro: null };
+  }
+  // El mismo redondeo que `promocion.con_descuento` del backend, para que la
+  // cifra de la pantalla y la de la cita sean la misma.
+  const ahorro = Math.round((t.n * porcentaje) / 100);
+  return { aplica, porcentaje, total: t.n - ahorro, ahorro };
+}
+
+/** El total que de verdad se va a cobrar: con descuento si le toca. */
+export const totalACobrar = (reserva: ParaCobrarConFecha): number | null =>
+  descuento(reserva).total;
+
+/** Lo que queda por pagar en el salón después del abono */
+export function saldo(reserva: ParaCobrarConFecha, textoSiNoExacto: string): string {
+  const total = totalACobrar(reserva);
+  return total != null ? money(total - abonoDe(reserva)) : textoSiNoExacto;
 }

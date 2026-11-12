@@ -51,6 +51,8 @@ export const NOMBRE_ADICIONAL: Record<string, string> = {
   "OZONOTERAPIA COMBO": "Ozonoterapia",
   "MASCARILLA COMBO": "Mascarilla (incluye lavado)",
   "ASESORIA DE COLOR": "Asesoría de color",
+  "NIVELACION DE COLOR": "Nivelación de color",
+  "DECAPADO/EXTRACCION": "Decapado o extracción de negros o rojos",
   "BARBA Y CEJAS": "Barba y cejas",
   "LAVADO": "Lavado",
   "SECADO": "Secado",
@@ -112,6 +114,37 @@ export const PRESENTACION: Record<string, Presentacion> = {
     desc: "Acompaña el rizo mientras crece, con las dos texturas trabajadas.",
     incluye: "Corte, lavado, mascarilla, definición detallada en la parte rizada, definición detallada en la parte lisa, asesoría, secado",
     adicionales: ["DETOX"],
+  },
+  /* --- Color -------------------------------------------------------------
+     Las tres familias varían SOLO por densidad: el backend manda
+     `plasticidad: null` y la web se salta el paso 2. Ver `sinPlasticidad`.
+
+     Los dos extras se ofrecen como adicionales de las tres y nunca sueltos:
+     un decapado de $280.000 sin ningún color debajo no es algo que el salón
+     venda, y la forma de que no se ofrezca es justamente no tener entrada
+     propia acá. La nota dice que los confirma la colorista porque es verdad
+     —se deciden viendo el cabello— y porque la clienta no tiene cómo saber
+     si le hacen falta. */
+  "COLOR TONO DIRECTO": {
+    id: "c-tono-directo", grupo: "Color", orden: 10, nombre: "Color tono directo",
+    desc: "Un solo tono parejo, sin decolorar.",
+    incluye: "Asesoría de color, aplicación, lavado y secado",
+    nota: "El valor depende de cuánto cabello hay. Si tu cabello tiene color anterior, la colorista puede recomendarte una nivelación o un decapado el día de la cita.",
+    adicionales: ["NIVELACION DE COLOR", "DECAPADO/EXTRACCION"],
+  },
+  "CUBRIMIENTO DE CANAS": {
+    id: "c-canas", grupo: "Color", orden: 20, nombre: "Cubrimiento de canas",
+    desc: "Cobertura de canas respetando el rizo.",
+    incluye: "Asesoría de color, aplicación, lavado y secado",
+    nota: "El valor depende de cuánto cabello hay.",
+    adicionales: ["NIVELACION DE COLOR", "DECAPADO/EXTRACCION"],
+  },
+  "BALAYAGE MORENA ILUMINADA": {
+    id: "c-balayage", grupo: "Color", orden: 30, nombre: "Balayage morena iluminada",
+    desc: "Iluminación a mano alzada, pensada para que crezca sin marcar raíz.",
+    incluye: "Asesoría de color, decoloración, matizado, lavado y secado",
+    nota: "El valor depende de cuánto cabello hay. Sobre cabello procesado la colorista puede recomendarte una nivelación o un decapado el día de la cita.",
+    adicionales: ["NIVELACION DE COLOR", "DECAPADO/EXTRACCION"],
   },
   "CORTE HOMBRE": {
     id: "h-corte", grupo: "Hombres", orden: 10, nombre: "Corte hombre",
@@ -176,7 +209,7 @@ export const NOTA_GRUPO: Record<string, string> = {
 
 /** El orden del menú. El Full va primero porque es el que la casa recomienda. */
 export const ORDEN_GRUPOS = [
-  "Servicio Full", "Mujeres", "Definición", "Tratamiento", "Transición",
+  "Servicio Full", "Mujeres", "Definición", "Tratamiento", "Color", "Transición",
   "Hombres", "Niños", "Peinados", "Maquillaje", "Uñas",
 ] as const;
 
@@ -184,12 +217,14 @@ export const ORDEN_GRUPOS = [
 export const ETIQUETA_GRUPO: Record<Lang, Record<string, string>> = {
   es: {
     "Servicio Full": "El completo", "Mujeres": "Corte mujer", "Definición": "Definición",
-    "Tratamiento": "Tratamiento", "Transición": "Transición", "Hombres": "Hombres",
+    "Tratamiento": "Tratamiento", "Color": "Color", "Transición": "Transición",
+    "Hombres": "Hombres",
     "Niños": "Niños", "Peinados": "Peinados", "Maquillaje": "Maquillaje", "Uñas": "Uñas",
   },
   en: {
     "Servicio Full": "The full service", "Mujeres": "Women · haircut", "Definición": "Definition",
-    "Tratamiento": "Treatment", "Transición": "Transition", "Hombres": "Men", "Niños": "Kids",
+    "Tratamiento": "Treatment", "Color": "Color", "Transición": "Transition", "Hombres": "Men",
+    "Niños": "Kids",
     "Peinados": "Hairstyling", "Maquillaje": "Makeup", "Uñas": "Nails",
   },
 };

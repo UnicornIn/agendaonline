@@ -111,6 +111,7 @@ export function construirCatalogo(servicios: ServicioApi[]): Servicio[] {
       p: money(f.precio),
       t: f.duracionMinutos > 0 ? `+${f.duracionMinutos} min` : "No agrega tiempo",
       servicioId: f.servicioId,
+      categoria: f.categoria,
     };
   };
 
@@ -126,6 +127,12 @@ export function construirCatalogo(servicios: ServicioApi[]): Servicio[] {
 
     const tieneMatriz = filas.some((f) => f.ejes.densidad);
     const matriz = tieneMatriz ? armarMatriz(filas) : undefined;
+    // El backend manda `plasticidad: null` cuando la familia no tiene ese
+    // eje. No se puede deducir de la matriz: una columna P.B llena de "N/A"
+    // tanto puede ser "no existe el eje" (color) como "existe y esa
+    // plasticidad no se presta" (definición sencilla), y a la clienta se le
+    // debe una cosa distinta en cada caso.
+    const sinPlasticidad = tieneMatriz && filas.every((f) => f.ejes.plasticidad === null);
     const adicionales = (p.adicionales ?? [])
       .map(adicionalDe)
       .filter((a): a is Adicional => a !== null);
@@ -133,6 +140,9 @@ export function construirCatalogo(servicios: ServicioApi[]): Servicio[] {
     salida.push({
       id: p.id,
       familia,
+      // Todas las filas de una familia comparten categoría —se la hereda la
+      // semilla del servicio al que reemplaza—, así que la primera alcanza.
+      categoria: filas[0].categoria,
       grupo: p.grupo,
       orden: p.orden,
       nombre: p.nombre,
@@ -143,6 +153,7 @@ export function construirCatalogo(servicios: ServicioApi[]): Servicio[] {
       tiempo: tieneMatriz ? undefined : duracion(filas[0].duracionMinutos),
       servicioId: tieneMatriz ? undefined : filas[0].servicioId,
       matriz: matriz?.length ? matriz : undefined,
+      sinPlasticidad: sinPlasticidad || undefined,
       adicionales: adicionales.length ? adicionales : undefined,
     });
   }

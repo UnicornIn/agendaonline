@@ -82,6 +82,10 @@ export const TEXTOS = {
                   "No stylist at this salon performs every service you picked."],
   paso1: ["Paso 1 de 2 · Tu cabello", "Step 1 of 2 · Your hair"],
   paso2: ["Paso 2 de 2 · Tu cabello", "Step 2 of 2 · Your hair"],
+  // Las familias sin eje de plasticidad —el color— tienen UN solo paso de
+  // diagnóstico. Decirle "paso 1 de 2" y mandarla derecho al detalle la deja
+  // esperando una pantalla que no va a llegar.
+  pasoUnico: ["Tu cabello", "Your hair"],
   densTitulo: ["¿Cuánto cabello<br>tienes?", "How much hair<br>do you have?"],
   densSub: ["A eso le decimos densidad: no es qué tan grueso es cada hilo, sino cuántos hilos tienes. Mira las fotos y toca la que se parezca al tuyo, suelto y seco.",
             "That's density: not how thick each strand is, but how many strands you have. Look at the photos and tap the one closest to your hair, loose and dry."],
@@ -140,6 +144,20 @@ export const TEXTOS = {
   abonoSub: ["Haz el abono, sube la foto del comprobante y tu cita queda confirmada al instante.",
              "Pay the deposit, upload the receipt photo and your appointment is confirmed right away."],
   abono: ["Abono", "Deposit"],
+  // --- la campaña de reactivación ---
+  // El título, el detalle y el aviso de fechas los manda el backend en
+  // español: son los mismos textos que acompañan la regla que él aplica al
+  // cobrar, y tenerlos acá sería garantizar que algún día digan cosas
+  // distintas. Lo de abajo es solo la traducción al inglés y las etiquetas.
+  promoAviso: ["",
+    "Your 20% discount applies only to appointments taking place between "
+    + "November 12 and 30, 2026. An appointment booked in November for "
+    + "December gets no discount."],
+  promoTitulo: ["", "You have a special benefit"],
+  promoDetalle: ["", "20% off all our services."],
+  promoAplicado: ["Beneficio aplicado", "Benefit applied"],
+  promoAhorras: ["Ahorras %s", "You save %s"],
+  promoAntes: ["Antes %s", "Was %s"],
   pagasSalon: ["Pagas %s en el salón", "You pay %s at the salon"],
   saldo: ["Pagas en el salón", "You pay at the salon"],
   elResto: ["el resto", "the rest"],

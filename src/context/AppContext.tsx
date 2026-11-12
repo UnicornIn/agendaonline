@@ -21,6 +21,9 @@ const CLAVE_IDIOMA = "rf_idioma";
 
 export const RESERVA_VACIA: Readonly<Reserva> = Object.freeze({
   modo: null,
+  // Arranca en false y solo lo prende el historial: el beneficio lo decide el
+  // backend sobre el teléfono, nunca esta pantalla.
+  promocion: false,
   via: "tel",
   pais: "+57",
   tel: "",

@@ -45,6 +45,8 @@ interface HistorialApi {
   ultimaVisita: string | null;
   diagnostico: { densidad: string | null; plasticidad: string | null };
   frecuentes: BloqueApi[];
+  /** Si a este teléfono le toca el 20% de la campaña. */
+  promocion?: boolean;
 }
 
 const DENSIDADES: Densidad[] = ["Baja", "Media", "Alta", "Extra alta"];
@@ -137,6 +139,10 @@ function aHistorial(api: HistorialApi, correo: string): Historial | null {
     plast: aPlasticidad(api.diagnostico?.plasticidad ?? null),
     correo: api.correo?.trim().toLowerCase() || correo,
     servicios,
+    // `?? false` y no `!`: un backend viejo —o los datos de muestra— no
+    // mandan el campo, y ahí la respuesta correcta es que no hay beneficio.
+    // Pintar un banner de descuento por un campo ausente es prometer plata.
+    promocion: api.promocion ?? false,
   };
 }
 
@@ -159,6 +165,9 @@ const DEMO: Record<string, Historial> = import.meta.env.DEV
         nombre: "Laura Restrepo", estilista: "Marcela",
         ultimaVisita: "12 de agosto de 2026",
         dens: "Alta", plast: "pa", correo: "laura@mail.com",
+        // En desarrollo la clienta de muestra SÍ está invitada: es la única
+        // forma de ver el banner y el descuento sin la base real detrás.
+        promocion: true,
         servicios: [
           { svc: "full", fecha: "12 de agosto de 2026", extras: ["Ozonoterapia"] },
           { svc: "definicion", fecha: "3 de junio de 2026", extras: [] },

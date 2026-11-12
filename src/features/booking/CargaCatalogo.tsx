@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { agendaApi } from "../../api/agenda";
 import { ApiError } from "../../api/httpClient";
 import { cargarCatalogo } from "../../data/catalog";
+import { cargarConfigAgenda } from "../../data/configAgenda";
 import { construirCatalogo } from "../../data/adaptador";
 import { useApp } from "../../context/AppContext";
 import { Button } from "../../components/ui";
@@ -17,6 +18,12 @@ import { Button } from "../../components/ui";
  * Se pide UNA vez por sesión. El catálogo de una sede no cambia mientras
  * alguien agenda, y volver a pedirlo en cada pantalla son diez llamadas para
  * la misma respuesta.
+ *
+ * `GET /config` entra por la misma puerta y es igual de obligatorio: de ahí
+ * sale cuánto hay que abonar. No se le pone un valor por defecto porque un
+ * abono inventado se ve igual de bien que el real y la clienta transfiere esa
+ * cifra. Los dos salen del mismo backend, así que exigir los dos no agrega un
+ * modo de falla: si uno no responde, el otro tampoco.
  */
 
 type Estado = { fase: "cargando" } | { fase: "listo" } | { fase: "error"; mensaje: string };
@@ -29,10 +36,10 @@ export default function CargaCatalogo({ children }: { children: React.ReactNode 
   useEffect(() => {
     let vigente = true;
     setEstado({ fase: "cargando" });
-    agendaApi
-      .catalogo()
-      .then((servicios) => {
+    Promise.all([agendaApi.catalogo(), agendaApi.config()])
+      .then(([servicios, config]) => {
         if (!vigente) return;
+        cargarConfigAgenda(config);
         const catalogo = construirCatalogo(servicios);
         if (!catalogo.length) {
           // El backend respondió, pero nada de lo que mandó se puede mostrar.

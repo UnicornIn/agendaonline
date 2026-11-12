@@ -1,4 +1,5 @@
 import { http } from "./httpClient";
+import type { ConfigAgenda } from "../types";
 
 /* =========================================================
    El backend de la agenda
@@ -80,8 +81,9 @@ export interface CitaCreada {
 const comas = (ids: string[]): string => ids.filter(Boolean).join(",");
 
 export const agendaApi = {
-  /** Sede, abono, medios de pago, políticas y los parámetros de la agenda. */
-  config: () => http.get<Record<string, unknown>>("/config"),
+  /** Sede, abono, medios de pago, políticas, los parámetros de la agenda y
+   *  la campaña vigente. */
+  config: () => http.get<ConfigAgenda>("/config"),
 
   catalogo: () =>
     http.get<{ servicios: ServicioApi[] }>("/catalogo").then((r) => r.servicios ?? []),

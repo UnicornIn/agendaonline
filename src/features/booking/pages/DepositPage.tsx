@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { comprobanteApi, revisarArchivo } from "../../../api/comprobante";
-import { ABONO, PAGOS } from "../../../data/catalog";
+import { PAGOS } from "../../../data/catalog";
 import { useApp } from "../../../context/AppContext";
 import { useToast } from "../../../context/ToastContext";
 import { PATHS } from "../../../router/paths";
-import { calcularTotal, money, saldo } from "../../../lib/pricing";
+import { abonoDe, calcularTotal, descuento, money, saldo } from "../../../lib/pricing";
+import ValorConDescuento from "../ValorConDescuento";
 import { MANDAR_CONTEXTO_META, obtenerContextoMeta, trackSchedule } from "../../../lib/metaPixel";
 import { Button, Label, Sub, Title } from "../../../components/ui";
 
@@ -87,7 +88,9 @@ export default function DepositPage() {
       // que deduplica contra el evento que manda el servidor.
       trackSchedule({
         servicio: total.labels.join(" + "),
-        precio: total.n,
+        // Lo que de verdad se cobró, no el de lista: con el de lista, Meta
+        // aprende a buscar clientas por un valor que el salón no facturó.
+        precio: promo.total,
         ids: total.servicioIds,
         reservaId: cita.citaId,
       });
@@ -118,6 +121,11 @@ export default function DepositPage() {
   // Solo las formas de pago que de verdad existen. El filtro es la regla, no
   // un caso especial para el link: el día que la sede estrene o quite una, se
   // cambia el dato en el catálogo y esta pantalla se acomoda sola.
+  // El descuento de la campaña, ya resuelto: acá la fecha YA está elegida, y
+  // es lo que decide si entra o no. Es la última pantalla antes de pagar, que
+  // es donde la cifra importa de verdad.
+  const promo = descuento(reserva);
+
   const filas = (
     [
       ["cuenta", t("transferencia"), `${t("ahorros")} · `],
@@ -133,10 +141,20 @@ export default function DepositPage() {
       <div className="amount">
         <div>
           <div className="lbl">{t("abono")}</div>
-          <div className="num">{money(ABONO)}</div>
+          <div className="num">{money(abonoDe(reserva))}</div>
         </div>
         <div className="rest">{t("pagasSalon", { "%s": saldo(reserva, t("elResto")) })}</div>
       </div>
+
+      {promo.aplica && promo.ahorro != null && (
+        <div className="promo-aplicado">
+          <span>
+            <b>{t("promoAplicado")} −{promo.porcentaje}%</b>{" "}
+            <span className="tachado">{t("promoAntes", { "%s": total.precio })}</span>
+          </span>
+          <b>{t("promoAhorras", { "%s": money(promo.ahorro) })}</b>
+        </div>
+      )}
 
       <Label>{t("comoPagar")}</Label>
       <div className="pay">
@@ -195,7 +213,10 @@ export default function DepositPage() {
       )}
 
       {/* El total queda a la vista mientras paga: es el número que va a comparar */}
-      <p className="note">{total.labels.join(" + ")} · {total.precio}</p>
+      <p className="note">
+        {total.labels.join(" + ")} ·{" "}
+        <ValorConDescuento reserva={reserva} precioDeLista={total.precio} />
+      </p>
     </>
   );
 }

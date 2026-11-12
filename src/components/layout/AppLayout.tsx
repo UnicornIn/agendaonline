@@ -6,6 +6,7 @@ import { ToastProvider } from "../../context/ToastContext";
 import { MAX_STEP, PATHS, type RouteHandle } from "../../router/paths";
 import { BackIcon } from "../ui/Icons";
 import CargaCatalogo from "../../features/booking/CargaCatalogo";
+import BannerPromocion from "../../features/booking/BannerPromocion";
 import { useMetaPixel } from "../../features/analytics/useMetaPixel";
 
 /**
@@ -64,6 +65,14 @@ export default function AppLayout() {
                 className={`screen active${navType === "POP" ? " back-anim" : ""}`}
                 onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 6)}
               >
+                {/* DENTRO de la sección que scrollea, a propósito: así se va
+                    con el contenido al bajar y vuelve al subir, sin JS que
+                    rastree la dirección.
+                    Esa versión existió y se devolvió: replegarlo cambiaba la
+                    altura del área que scrollea, el navegador ajustaba
+                    `scrollTop`, y eso llegaba como un evento de scroll hacia
+                    ARRIBA que lo volvía a abrir solo. */}
+                <BannerPromocion />
                 <Outlet />
               </section>
             </main>
