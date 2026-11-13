@@ -42,6 +42,41 @@ interface ErrorBody {
   message?: string;
 }
 
+/**
+ * El identificador de esta visita, que viaja en `X-Sesion`.
+ *
+ * Es lo que le permite al servidor coser los pasos de una misma persona: hasta
+ * que manda el formulario no sabe quién es, así que sin este hilo "apartó una
+ * hora" y "pidió subir el comprobante" son dos hechos sueltos que no se pueden
+ * juntar. Con él, el panel puede responderle a una clienta hasta dónde llegó.
+ *
+ * Vive en `sessionStorage` y no en `localStorage` a propósito: identifica UNA
+ * visita, no a una persona. Si vuelve mañana es otro intento, y mezclarlos
+ * haría parecer que llegó más lejos de lo que llegó.
+ *
+ * No lleva ningún dato suyo: es un número al azar. Y si el navegador no deja
+ * guardar —modo privado, almacenamiento bloqueado— se usa uno en memoria y ya;
+ * nunca puede impedir que alguien agende.
+ */
+const CLAVE_SESION = "rf_sesion";
+let sesionEnMemoria: string | null = null;
+
+function idDeSesion(): string {
+  if (sesionEnMemoria) return sesionEnMemoria;
+  const nuevo = (): string =>
+    // `randomUUID` no existe en contextos sin HTTPS ni en navegadores viejos.
+    globalThis.crypto?.randomUUID?.() ??
+    `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  try {
+    const guardado = sessionStorage.getItem(CLAVE_SESION);
+    sesionEnMemoria = guardado || nuevo();
+    if (!guardado) sessionStorage.setItem(CLAVE_SESION, sesionEnMemoria);
+  } catch {
+    sesionEnMemoria = nuevo();
+  }
+  return sesionEnMemoria;
+}
+
 export type QueryParams = Record<string, string | number | boolean | null | undefined>;
 
 export interface RequestOptions {
@@ -80,6 +115,7 @@ async function request<T>(
       method,
       headers: {
         Accept: "application/json",
+        "X-Sesion": idDeSesion(),
         ...(body !== undefined && { "Content-Type": "application/json" }),
         ...config.api.headers,
         ...headers,
