@@ -146,20 +146,25 @@ export function calcularTotal(reserva: ParaCobrar): Total {
 }
 
 /**
- * Lo que se abona por ESTE bloque.
+ * Lo que se abona por ESTE bloque. Lo decide el servicio PRINCIPAL.
  *
- * Se mira el principal y cada adicional elegido, porque el abono sale de la
- * categoría y un adicional puede traer una más cara que el principal: una
- * nivelación de color sobre un servicio que no es de color sube el abono a
- * $90.000, igual que lo sube el backend al crear la cita.
+ * Los adicionales NO cuentan, aunque traigan una categoría más cara. Antes sí
+ * contaban, y dejaba esto: una clienta que agenda un corte de $110.000 y le
+ * agrega la asesoría de color —$39.000, un adicional que ni siquiera alarga
+ * la cita— pasaba de abonar $50.000 a abonar $90.000. Casi el total del
+ * servicio, por un extra. El abono aparta el cupo, y el cupo es el del
+ * principal; los $90.000 son para cuando el principal ES de color, que es
+ * cuando hay que comprar tinte antes de que llegue.
+ *
+ * Decisión de operación del 2026-11-13. El backend hace la misma cuenta en
+ * `_abono_de`: si se cambia una, se cambia la otra, o la pantalla promete un
+ * abono distinto del que se le va a cobrar.
  *
  * El abono NO se rebaja con la promoción: aparta el cupo, no es una fracción
  * del servicio. Lo que baja es el saldo.
  */
 export function abonoDe(reserva: ParaCobrar): number {
-  const s = buscarServicio(reserva.svc);
-  const elegidos = adicionalesDe(s).filter((a) => reserva.extras.includes(a.n));
-  return abono([s?.categoria, ...elegidos.map((a) => a.categoria)]);
+  return abono([buscarServicio(reserva.svc)?.categoria]);
 }
 
 /**
