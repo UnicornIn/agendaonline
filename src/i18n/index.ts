@@ -24,13 +24,20 @@ export const TEXTOS = {
   btnCliente: ["Ya soy cliente de Rizos Felices", "I'm already a client"],
   btnPrimera: ["Cita primera vez", "First-time appointment"],
 
-  // ---- La raíz del sitio: en qué sede ----
-  elegirSedeKicker: ["Rizos Felices", "Rizos Felices"],
-  elegirSedeTitulo: ["¿En qué sede<br>quieres tu cita?", "Which salon<br>do you want?"],
-  elegirSedeSub: ["Elige tu sede y seguimos con tu cita.",
-                  "Pick your salon and we'll take it from there."],
-  sedeDesconocida: ["Ese enlace no corresponde a ninguna de nuestras sedes. Elige la tuya y sigues desde ahí.",
-                    "That link doesn't match any of our salons. Pick yours and carry on from there."],
+  // ---- Llegó sin sede ----
+  //
+  // No se le ofrece una lista de sedes. Elegir de una lista es elegir mal: la
+  // clienta que no está segura toca la primera y la cita queda en otra
+  // ciudad, y eso se descubre el día de la cita. Se le manda a pedir SU
+  // enlace a alguien que sí sabe dónde atiende.
+  sinSedeTitulo: ["Necesitas el enlace<br>de tu sede", "You need your<br>salon's link"],
+  sinSedeSub: ["Cada sede de Rizos Felices agenda por su propio enlace, para que tu cita quede donde de verdad vas a ir. Escríbenos y te mandamos el tuyo.",
+               "Each Rizos Felices salon books through its own link, so your appointment lands where you'll actually show up. Message us and we'll send you yours."],
+  sedeDesconocida: ["Ese enlace no corresponde a ninguna de nuestras sedes.",
+                    "That link doesn't match any of our salons."],
+  pedirEnlace: ["Pedir mi enlace por WhatsApp", "Get my link on WhatsApp"],
+  saludoSinSede: ["Hola, quiero agendar una cita y necesito el enlace de mi sede.",
+                  "Hi, I'd like to book an appointment and I need my salon's link."],
   cargandoSedes: ["Cargando las sedes…", "Loading salons…"],
   errorSedes: ["No pudimos cargar las sedes. Revisa tu conexión e inténtalo de nuevo; si sigue igual, escríbenos por WhatsApp y te agendamos.",
                "We couldn't load the salons. Check your connection and try again; if it keeps failing, message us on WhatsApp and we'll book you."],

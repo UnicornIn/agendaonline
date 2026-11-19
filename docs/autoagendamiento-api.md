@@ -83,7 +83,12 @@ Esa pieza va donde están los datos, por tres razones concretas:
 ## `GET /sedes`
 
 Qué sedes agendan por internet. Es la única llamada del módulo que no cuelga de una sede, y la
-primera que hace la web: con ella valida el apodo de la URL y, si no hay apodo, pinta la lista.
+primera que hace la web: con ella traduce el apodo de la URL antes de montar el router.
+
+**La web nunca pinta esta lista.** Hubo una pantalla que la mostraba para elegir y se quitó el
+mismo día: ofrecer una lista de sedes es ofrecer agendar en la equivocada, que es justo lo que una
+URL por sede vino a evitar. Quien llega sin apodo —o con uno que no es de nadie— ve una pantalla
+que le pide su enlace por WhatsApp, sin nombrarle ninguna sede. El endpoint existe para validar.
 
 ```json
 {
@@ -94,8 +99,9 @@ primera que hace la web: con ella valida el apodo de la URL y, si no hay apodo, 
 }
 ```
 
-El orden es el de `AUTOAGENDAMIENTO_SEDES` y es decisión de operación: la primera es la que más
-gente va a tocar, y eso no lo decide el alfabeto.
+El orden es el de `AUTOAGENDAMIENTO_SEDES`. Hoy no lo mira nadie —la web solo busca su apodo en la
+lista— y se conserva porque es gratis y porque el día que algo tenga que recorrer las sedes, el
+orden en que operación las escribió dice más que el alfabeto.
 
 `nombre` ya viene listo para pintar. En la colección las sedes se llaman `RF CALI NORTE`, que está
 escrito para la agenda interna; acá sale `Cali Norte`. Lo que operación escriba en

@@ -16,8 +16,13 @@ Ocho sedes agendan por web, cada una en su URL:
 | Niquía | `citas.rizosfelices.co/niquia` | `SD-26470` |
 | Apartadó | `citas.rizosfelices.co/apartado` | `SD-49436` |
 
-La raíz `citas.rizosfelices.co` muestra la lista para elegir. Es la pantalla
-que nadie debería ver: los enlaces que se reparten llevan directo a la sede.
+**La raíz `citas.rizosfelices.co` no ofrece ninguna sede**, a propósito. Una
+lista para elegir es una invitación a elegir mal: la clienta que no está
+segura toca la primera y la cita queda en otra ciudad, y eso no se descubre
+hasta el día de la cita, con ella parada en el salón equivocado. Quien llegue
+sin enlace ve una pantalla que le pide el suyo por WhatsApp, donde contesta
+alguien que sí sabe dónde atiende. Lo mismo para un enlace que no corresponde
+a ninguna sede.
 
 ---
 
@@ -65,9 +70,8 @@ Suramericana sigue andando, y subir la web después.
    AUTOAGENDAMIENTO_SEDES=SD-88809:suramericana,SD-28904:restrepo,SD-22094:cali-norte,SD-18821:cali-sur,SD-89958:sabaneta,SD-36145:rionegro,SD-26470:niquia,SD-49436:apartado
    ```
 
-   El formato es `id:apodo`, separado por comas, y **el orden es el que ve
-   quien entre a la raíz del sitio**. Quitar una sede de esta lista la apaga
-   sin desplegar nada: su URL pasa a responder 404.
+   El formato es `id:apodo`, separado por comas. Quitar una sede de esta lista
+   la apaga sin desplegar nada: su URL pasa a responder 404.
 
 3. **Darle Redeploy a mano.** Railway tiene `watchPatterns: ["Dockerfile"]`,
    así que un merge que solo toca código aparece como **SKIPPED** y no sube

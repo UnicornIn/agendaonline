@@ -5,9 +5,8 @@ import { config } from "../../config";
 import { fijarSede } from "../../data/sede";
 import { useApp } from "../../context/AppContext";
 import AppRouter from "../../router/AppRouter";
-import SedesPage from "./pages/SedesPage";
+import SinSedePage from "./pages/SinSedePage";
 import { Button } from "../../components/ui";
-import type { SedePublica } from "../../types";
 
 /* =========================================================
    La primera decisión de la visita: en qué sede está
@@ -22,6 +21,11 @@ import type { SedePublica } from "../../types";
    acá sería duplicar la lista blanca del servidor en un sitio que se despliega
    aparte: el día que operación abra una sede, la web diría que no existe hasta
    que alguien recompile.
+
+   Esa lista se usa para VALIDAR y nunca se pinta. Hubo una pantalla que la
+   mostraba para elegir y se quitó el mismo día: ofrecer una lista de sedes es
+   ofrecer agendar en la equivocada, que es justo lo que una URL por sede vino
+   a evitar. Quien llega sin sede va a `SinSedePage`, a pedir la suya.
    ========================================================= */
 
 /** El prefijo del sitio, si la web no vive en la raíz del dominio. */
@@ -44,16 +48,16 @@ function apodoDeLaUrl(): string {
   return (sinRaiz.split("/").filter(Boolean)[0] ?? "").toLowerCase();
 }
 
-/** A dónde apunta el enlace de una sede. Es la URL entera: cambiar de sede es
- *  cambiar de `basename`, y eso no se puede hacer sin recargar. */
-export function urlDeSede(slug: string): string {
+/** A dónde apunta la URL de una sede. Es la URL entera: entrar a una sede es
+ *  fijar el `basename` del router, y eso no se puede hacer sin recargar. */
+function urlDeSede(slug: string): string {
   return ES_HASH ? `#/${slug}` : `${RAIZ}/${slug}`;
 }
 
 type Estado =
   | { fase: "cargando" }
   | { fase: "lista"; slug: string }
-  | { fase: "elegir"; sedes: SedePublica[]; desconocida: string | null }
+  | { fase: "sin-sede"; desconocida: string | null }
   | { fase: "error"; mensaje: string };
 
 export default function Arranque() {
@@ -100,9 +104,10 @@ export default function Arranque() {
         }
 
         // O entró a la raíz con varias sedes abiertas, o el apodo de la URL
-        // no es ninguna. Las dos terminan en la misma pantalla; la segunda
-        // además dice qué pasó, porque suele ser un enlace viejo.
-        setEstado({ fase: "elegir", sedes, desconocida: apodo || null });
+        // no es ninguna. Las dos terminan en la misma pantalla, que NO ofrece
+        // sedes: le manda a pedir la suya. La segunda además dice qué pasó,
+        // porque suele ser un enlace viejo.
+        setEstado({ fase: "sin-sede", desconocida: apodo || null });
       })
       .catch((err: unknown) => {
         if (!vigente) return;
@@ -132,8 +137,8 @@ export default function Arranque() {
     );
   }
 
-  if (estado.fase === "elegir") {
-    return <SedesPage sedes={estado.sedes} desconocida={estado.desconocida} />;
+  if (estado.fase === "sin-sede") {
+    return <SinSedePage desconocida={estado.desconocida} />;
   }
 
   // El `key` por sede: si alguien llegara a cambiar de sede sin recargar, el
