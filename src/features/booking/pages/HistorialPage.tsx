@@ -47,7 +47,9 @@ export default function HistorialPage() {
       repite: true,
       dens: historial!.dens,
       plast: historial!.plast,
-      estilista: historial!.estilista,
+      estilista: historial!.estilista || null,
+      // Repetir lo de siempre es, sobre todo, repetir con quien la atendió.
+      estilistaId: historial!.estilistaId ?? null,
       fecha: null,
       hora: null,
     });
@@ -74,7 +76,10 @@ export default function HistorialPage() {
 
   function noSoyYo() {
     olvidar();
-    actualizar({ nombre: "", estilista: null, dens: null, plast: null, correo: "", tel: "" });
+    actualizar({
+      nombre: "", estilista: null, estilistaId: null,
+      dens: null, plast: null, correo: "", tel: "",
+    });
     navigate(PATHS.ident);
   }
 

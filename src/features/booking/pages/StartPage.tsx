@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useApp, RESERVA_VACIA } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
 import { business } from "../../../config/business";
+import { etiquetaDeSede } from "../../../data/sede";
 import { Button, ButtonLink, Kicker, Note, Stack, Sub, TitleHtml } from "../../../components/ui";
 import { WhatsAppIcon } from "../../../components/ui/Icons";
 
@@ -30,7 +31,7 @@ const MOSTRAR_AGENTE = false;
 
 export default function StartPage() {
   const navigate = useNavigate();
-  const { t, actualizar } = useApp();
+  const { lang, t, actualizar } = useApp();
 
   const primeraVez = () => {
     actualizar({ ...RESERVA_VACIA, modo: "nueva" });
@@ -39,7 +40,7 @@ export default function StartPage() {
 
   return (
     <div style={{ paddingTop: 36 }}>
-      <Kicker>{t("sede")}</Kicker>
+      <Kicker>{etiquetaDeSede(lang)}</Kicker>
       <TitleHtml html={t("tituloInicio")} />
       <Sub>{t("intro")}</Sub>
       <Stack style={{ marginTop: 26 }}>

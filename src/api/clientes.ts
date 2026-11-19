@@ -1,6 +1,7 @@
 import { http } from "./httpClient";
 import { config } from "../config";
 import { ubicarAdicional, ubicarServicioId } from "../data/catalog";
+import { bajoSede } from "../data/sede";
 import type { Densidad, Historial, Plasticidad, ServicioPasado } from "../types";
 
 /* =========================================================
@@ -127,9 +128,17 @@ function aHistorial(api: HistorialApi, correo: string): Historial | null {
     .map(aServicioPasado)
     .filter((s): s is ServicioPasado => s !== null);
 
+  // El nombre y el id salen del MISMO bloque, y solo si vienen los dos. Con
+  // dos búsquedas distintas se puede mostrar a una y agendar con otra; y un
+  // nombre sin id detrás es justo lo que hacía que la reserva viajara sin
+  // dueño. Sin ninguno de los dos no hay preferencia: la pantalla dirá "la
+  // primera disponible", que es la verdad.
+  const conProfesional = api.frecuentes.find((b) => b.profesionalNombre && b.profesionalId);
+
   return {
     nombre: api.nombre ?? "",
-    estilista: api.frecuentes.find((b) => b.profesionalNombre)?.profesionalNombre ?? "",
+    estilista: conProfesional?.profesionalNombre ?? "",
+    estilistaId: conProfesional?.profesionalId ?? null,
     // La fecha que manda la agenda, no una cuenta armada acá. Esta línea
     // sumaba las `veces` de los bloques y se mostraba como "N visitas con
     // nosotros": eso no son sus visitas, son las veces que repitió los tres
@@ -163,6 +172,10 @@ const DEMO: Record<string, Historial> = import.meta.env.DEV
   ? {
       "573104567890": {
         nombre: "Laura Restrepo", estilista: "Marcela",
+        // Inventado, con la forma de los de verdad: en desarrollo la lista de
+        // `/profesionales` es otra, así que la pantalla de fecha lo descarta y
+        // cae en "la primera disponible". Es el camino que se quiere probar.
+        estilistaId: "ES-00000",
         ultimaVisita: "12 de agosto de 2026",
         dens: "Alta", plast: "pa", correo: "laura@mail.com",
         // En desarrollo la clienta de muestra SÍ está invitada: es la única
@@ -214,7 +227,7 @@ export async function buscarHistorial(datos: DatosDeBusqueda): Promise<Historial
     return !pila || h.nombre.toLowerCase().includes(pila) ? h : null;
   }
 
-  const api = await http.post<HistorialApi>("/clienta/historial", {
+  const api = await http.post<HistorialApi>(bajoSede("/clienta/historial"), {
     // El backend lo acepta siempre y solo lo mira si su propio interruptor
     // está prendido. Ver `PeticionHistorial`.
     ...(datos.nombre ? { nombre: datos.nombre.trim() } : {}),

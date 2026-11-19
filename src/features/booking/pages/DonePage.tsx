@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { business } from "../../../config";
 import { useApp } from "../../../context/AppContext";
 import { useHistorial } from "../useHistorial";
+import { etiquetaDeSede } from "../../../data/sede";
 import { PATHS } from "../../../router/paths";
 import { abonoDe, calcularTotal, money, saldo, totalACobrar } from "../../../lib/pricing";
 import ValorConDescuento from "../ValorConDescuento";
@@ -56,7 +57,7 @@ export default function DonePage() {
       date: reserva.fecha,
       hora: reserva.hora,
       durationMins: total.mins || 90,
-      location: `${business.brand} · ${t("sede")}`,
+      location: `${business.brand} · ${etiquetaDeSede(lang)}`,
       description: `${t("valor")} ${valor} · ${t("abono")} ${abonado}`,
     });
   }

@@ -6,11 +6,20 @@
  * Todas cuelgan del módulo público de autoagendamiento del backend de agenda
  * (`/public/agendamiento`). El contrato está en docs/autoagendamiento-api.md.
  *
- * La sede NO viaja en ninguna de estas rutas: la fija el servidor. Un sede_id
- * que venga del navegador es un sede_id que cualquiera puede cambiar.
+ * La sede SÍ viaja, desde el 2026-11-19: va de primer segmento y como apodo
+ * —`/sabaneta/catalogo`—, que es lo que ya está en la URL que la clienta
+ * abrió. Lo que no viaja es el `sede_id`: el apodo solo significa algo contra
+ * la lista blanca del servidor, así que un parámetro de ruta mal usado no
+ * encuentra nada en vez de encontrar la sede equivocada.
+ *
+ * Las rutas se escriben acá SIN el apodo y se lo pone `bajoSede()`, en
+ * `src/data/sede.ts`. Escribirlo en cada una sería repetir ocho veces la
+ * misma decisión. La única sin apodo es `sedes`, que es la que lo elige.
  */
 export const ENDPOINTS = {
-  /** Sede, abono, medios de pago, políticas y los parámetros de la agenda */
+  /** Qué sedes agendan por internet. La única que no cuelga de una sede. */
+  sedes: "/sedes",
+  /** Sede, abono, cuenta del abono, políticas y los parámetros de la agenda */
   config: "/config",
   /** Servicios agendables de la sede, con los ejes del nombre ya interpretados */
   catalogo: "/catalogo",

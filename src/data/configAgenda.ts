@@ -1,4 +1,5 @@
-import type { Campana, ConfigAgenda } from "../types";
+import { business } from "../config/business";
+import type { Campana, ConfigAgenda, PagosSede } from "../types";
 
 /* =========================================================
    Lo que la agenda sabe del negocio, traído una vez
@@ -86,4 +87,35 @@ export function cubreLaFecha(fecha: string | null): boolean {
   if (!fecha) return false;
   const { desde, hasta } = campana();
   return fecha >= desde && fecha <= hasta;
+}
+
+/**
+ * Dónde transfiere la clienta el abono EN ESTA SEDE.
+ *
+ * Hasta el 2026-11-19 esto era una constante en `catalog.ts` con la cuenta de
+ * Bancolombia y la llave Bre-B de Suramericana, escritas a mano. Con ocho
+ * sedes abiertas eso dejó de ser un atajo y pasó a ser un error que mueve
+ * plata: la clienta de Cali copiaba la cuenta de Medellín y transfería ahí.
+ *
+ * `null` sigue significando lo mismo que significaba allá —"esta forma de
+ * pago no se ofrece", y su fila no se pinta—, y ahora además cubre el caso de
+ * la sede a la que todavía nadie le cargó su cuenta. Que se vea vacío es a
+ * propósito: el servidor prefiere no decir nada a decir la cuenta de otra.
+ */
+export const pagos = (): PagosSede => configAgenda().pagos;
+
+/**
+ * A qué WhatsApp escribe quien tiene una duda a mitad del flujo.
+ *
+ * El de la sede si lo tiene, y si no el de la marca. El respaldo es de la
+ * marca y no de otra sede por lo mismo que los pagos: mandar a la clienta de
+ * Cali a escribirle a Medellín resuelve menos que mandarla a un número
+ * general donde alguien contesta.
+ */
+export function whatsappDeLaSede(): string {
+  // Lee `CONFIG` directo y no `configAgenda()`, que lanza. Es el único que
+  // puede preguntar ANTES de que la config llegue: el botón de ayuda también
+  // acompaña la pantalla de error, que es justamente la de cuando no llegó. Y
+  // es la pantalla donde más falta hace poder escribir.
+  return CONFIG?.whatsapp || business.whatsappDudas;
 }

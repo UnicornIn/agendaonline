@@ -5,7 +5,9 @@ import { cargarCatalogo } from "../../data/catalog";
 import { cargarConfigAgenda } from "../../data/configAgenda";
 import { construirCatalogo } from "../../data/adaptador";
 import { useApp } from "../../context/AppContext";
-import { Button } from "../../components/ui";
+import { whatsappDeLaSede } from "../../data/configAgenda";
+import { Button, ButtonLink } from "../../components/ui";
+import { WhatsAppIcon } from "../../components/ui/Icons";
 
 /**
  * Trae el catálogo de la agenda antes de dejar entrar al flujo.
@@ -78,6 +80,21 @@ export default function CargaCatalogo({ children }: { children: React.ReactNode 
       <div className="loader">
         <p style={{ marginBottom: 16 }}>{estado.mensaje}</p>
         <Button onClick={() => setIntento((n) => n + 1)}>{t("reintentar")}</Button>
+        {/* El mensaje de error dice "escríbenos por WhatsApp" y hasta hoy no
+            daba dónde: el botón flotante vive del otro lado de esta puerta.
+            Acá es donde más falta hace — la clienta no puede agendar sola y
+            lo único que queda es que alguien la agende. El número es el de la
+            marca, no el de la sede: sin config no se sabe cuál es la suya. */}
+        <ButtonLink
+          variant="ghost"
+          size="sm"
+          style={{ marginTop: 12 }}
+          href={`https://wa.me/${whatsappDeLaSede()}?text=${encodeURIComponent(t("saludoDudas"))}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <WhatsAppIcon />{t("ayudaDudas")}
+        </ButtonLink>
       </div>
     );
   }

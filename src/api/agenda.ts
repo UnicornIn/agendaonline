@@ -1,4 +1,5 @@
 import { http } from "./httpClient";
+import { bajoSede } from "../data/sede";
 import type { ConfigAgenda } from "../types";
 
 /* =========================================================
@@ -8,8 +9,10 @@ import type { ConfigAgenda } from "../types";
    valen, cuánto duran, quién los presta y a qué horas queda cupo. Nada de eso
    vive en el frontend, porque nada de eso lo decide el frontend.
 
-   La sede NO viaja en ninguna llamada: la fija el servidor. Un `sede_id` que
-   venga del navegador es un `sede_id` que cualquiera puede cambiar.
+   La sede va de primer segmento en todas estas rutas, y la pone `bajoSede()`
+   una sola vez en cada una. Lo que viaja es el apodo de la URL que la clienta
+   abrió —`/sabaneta/catalogo`—, no el `sede_id` interno: el apodo solo
+   significa algo contra la lista blanca del servidor.
    ========================================================= */
 
 /** Un servicio tal como lo manda `/catalogo`. */
@@ -83,27 +86,27 @@ const comas = (ids: string[]): string => ids.filter(Boolean).join(",");
 export const agendaApi = {
   /** Sede, abono, medios de pago, políticas, los parámetros de la agenda y
    *  la campaña vigente. */
-  config: () => http.get<ConfigAgenda>("/config"),
+  config: () => http.get<ConfigAgenda>(bajoSede("/config")),
 
   catalogo: () =>
-    http.get<{ servicios: ServicioApi[] }>("/catalogo").then((r) => r.servicios ?? []),
+    http.get<{ servicios: ServicioApi[] }>(bajoSede("/catalogo")).then((r) => r.servicios ?? []),
 
   /** Quiénes prestan TODOS esos servicios. Una lista vacía es una respuesta
    *  legítima: nadie en la sede hace ese bloque completo. */
   profesionales: (servicioIds: string[]) =>
-    http.get<ProfesionalApi[]>("/profesionales", {
+    http.get<ProfesionalApi[]>(bajoSede("/profesionales"), {
       params: { servicioIds: comas(servicioIds) },
     }),
 
   disponibilidad: (fecha: string, servicioIds: string[], profesionalId?: string | null) =>
-    http.get<DisponibilidadApi>("/disponibilidad", {
+    http.get<DisponibilidadApi>(bajoSede("/disponibilidad"), {
       params: { fecha, servicioIds: comas(servicioIds), profesionalId: profesionalId ?? undefined },
     }),
 
   /** Qué días del rango tienen al menos un cupo, para pintar en gris los que
    *  no, en vez de dejar que la clienta los descubra uno por uno. */
   dias: (desde: string, hasta: string, servicioIds: string[]) =>
-    http.get<DiaApi[]>("/disponibilidad/dias", {
+    http.get<DiaApi[]>(bajoSede("/disponibilidad/dias"), {
       params: { desde, hasta, servicioIds: comas(servicioIds) },
     }),
 
@@ -119,7 +122,7 @@ export const agendaApi = {
    * tocó.
    */
   retener: (fecha: string, hora: string, servicioIds: string[], profesionalId?: string | null) =>
-    http.post<RetencionApi>("/retencion", {
+    http.post<RetencionApi>(bajoSede("/retencion"), {
       fecha,
       hora,
       servicioIds,
@@ -130,7 +133,7 @@ export const agendaApi = {
    *  son minutos en que nadie más puede tomarlo. Nunca lanza. */
   soltar: async (retencionId: string): Promise<void> => {
     try {
-      await http.delete(`/retencion/${encodeURIComponent(retencionId)}`);
+      await http.delete(bajoSede(`/retencion/${encodeURIComponent(retencionId)}`));
     } catch {
       /* La retención vence sola. Fallar acá no le sirve de nada a la clienta. */
     }
@@ -142,5 +145,5 @@ export const agendaApi = {
     contacto: Contacto;
     notas?: string | null;
     comprobante?: string | null;
-  }) => http.post<CitaCreada>("/cita", datos),
+  }) => http.post<CitaCreada>(bajoSede("/cita"), datos),
 };

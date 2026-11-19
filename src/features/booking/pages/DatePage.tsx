@@ -99,6 +99,23 @@ export default function DatePage() {
     };
   }, [idsClave]);
 
+  /* ---- la preferencia que viene del historial tiene que caber en ESTE bloque ---- */
+  /**
+   * Quien la atendió la vez pasada puede no prestar lo que escogió hoy. Con su
+   * id puesto, la disponibilidad vuelve vacía con `sin_horarios` y la pantalla
+   * dice "no hay estilistas": un callejón sin salida, cuando lo honesto es
+   * ofrecerle la primera disponible.
+   *
+   * Solo se suelta cuando la lista LLEGÓ y trae gente: `null` es que todavía no
+   * respondió y `[]` es que no se pudo pedir, y en esos dos casos el id sigue
+   * siendo la mejor información que hay —el servidor filtra igual con él.
+   */
+  useEffect(() => {
+    if (!profesionales?.length || !reserva.estilistaId) return;
+    if (profesionales.some((p) => p.profesionalId === reserva.estilistaId)) return;
+    actualizar({ estilista: null, estilistaId: null, hora: null });
+  }, [profesionales, reserva.estilistaId, actualizar]);
+
   /* ---- qué días tienen algo, para no dejarla tocar uno por uno ---- */
   useEffect(() => {
     if (dias.length) pedir(dias[0], dias[dias.length - 1]);

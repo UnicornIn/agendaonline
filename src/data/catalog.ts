@@ -58,18 +58,10 @@ export const PAISES: Array<[codigo: string, bandera: string, digitos: number]> =
   ["+593", "🇪🇨", 9], ["+507", "🇵🇦", 8],
 ];
 
-/**
- * Datos de pago de la sede.
- *
- * `null` no es "vacío", es "esta forma de pago no se ofrece": la fila
- * desaparece de la pantalla del abono. Una forma de pago que la clienta ve y
- * no puede usar la deja parada en el paso que confirma la cita.
- */
-export const PAGOS: Record<"cuenta" | "llave" | "link", string | null> = {
-  cuenta: "36000000929",
-  llave: "@rfsuramericana",
-  link: null,
-};
+// Los datos de pago vivían acá, quemados: la cuenta y la llave de
+// Suramericana. Se fueron a `GET /config` el 2026-11-19, con el multi-sede,
+// porque son de CADA sede y escribirlos acá era mostrarle a la clienta de
+// Cali dónde consignarle a Medellín. Ver `pagos()` en `configAgenda.ts`.
 
 /* ---------- Búsquedas sobre el catálogo ---------- */
 

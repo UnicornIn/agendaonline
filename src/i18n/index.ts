@@ -15,12 +15,27 @@ import type { Lang } from "../types";
 export const TEXTOS = {
   intro: ["Si ya eres cliente de Rizos Felices, con tus datos traemos el historial de tu cabello y agendas en dos toques.",
           "If you are already a Rizos Felices client, we bring up your hair history and you book in two taps."],
-  sede: ["Sede Suramericana · Medellín", "Suramericana · Medellín"],
+  // La línea de la sede ya no vive acá: la arma `etiquetaDeSede()` en
+  // src/data/sede.ts con el nombre y la ciudad que manda el servidor. Con
+  // ocho sedes, un texto fijo era el nombre de una sola y el de nadie más.
   horario: ["Atendemos con cita previa, de lunes a sábado de 9:00 a.m. a 6:00 p.m.",
             "By appointment only, Monday to Saturday, 9:00 a.m. to 6:00 p.m."],
   tituloInicio: ["Agenda tu cita<br>en Rizos Felices", "Book your appointment<br>at Rizos Felices"],
   btnCliente: ["Ya soy cliente de Rizos Felices", "I'm already a client"],
   btnPrimera: ["Cita primera vez", "First-time appointment"],
+
+  // ---- La raíz del sitio: en qué sede ----
+  elegirSedeKicker: ["Rizos Felices", "Rizos Felices"],
+  elegirSedeTitulo: ["¿En qué sede<br>quieres tu cita?", "Which salon<br>do you want?"],
+  elegirSedeSub: ["Elige tu sede y seguimos con tu cita.",
+                  "Pick your salon and we'll take it from there."],
+  sedeDesconocida: ["Ese enlace no corresponde a ninguna de nuestras sedes. Elige la tuya y sigues desde ahí.",
+                    "That link doesn't match any of our salons. Pick yours and carry on from there."],
+  cargandoSedes: ["Cargando las sedes…", "Loading salons…"],
+  errorSedes: ["No pudimos cargar las sedes. Revisa tu conexión e inténtalo de nuevo; si sigue igual, escríbenos por WhatsApp y te agendamos.",
+               "We couldn't load the salons. Check your connection and try again; if it keeps failing, message us on WhatsApp and we'll book you."],
+  sinSedes: ["Por ahora no hay sedes agendando en línea. Escríbenos por WhatsApp y te agendamos.",
+             "No salons are booking online right now. Message us on WhatsApp and we'll book you."],
   btnAgente: ["Prefiero ser atendida por un agente", "I'd rather talk to an agent"],
   ayudaDudas: ["¿Tienes dudas? Escríbenos por WhatsApp", "Questions? Message us on WhatsApp"],
   saludoDudas: [
