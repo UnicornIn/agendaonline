@@ -24,20 +24,13 @@ export const TEXTOS = {
   btnCliente: ["Ya soy cliente de Rizos Felices", "I'm already a client"],
   btnPrimera: ["Cita primera vez", "First-time appointment"],
 
-  // ---- Llegó sin sede ----
+  // ---- Mientras se resuelve la sede ----
   //
-  // No se le ofrece una lista de sedes. Elegir de una lista es elegir mal: la
-  // clienta que no está segura toca la primera y la cita queda en otra
-  // ciudad, y eso se descubre el día de la cita. Se le manda a pedir SU
-  // enlace a alguien que sí sabe dónde atiende.
-  sinSedeTitulo: ["Necesitas el enlace<br>de tu sede", "You need your<br>salon's link"],
-  sinSedeSub: ["Cada sede de Rizos Felices agenda por su propio enlace, para que tu cita quede donde de verdad vas a ir. Escríbenos y te mandamos el tuyo.",
-               "Each Rizos Felices salon books through its own link, so your appointment lands where you'll actually show up. Message us and we'll send you yours."],
-  sedeDesconocida: ["Ese enlace no corresponde a ninguna de nuestras sedes.",
-                    "That link doesn't match any of our salons."],
-  pedirEnlace: ["Pedir mi enlace por WhatsApp", "Get my link on WhatsApp"],
-  saludoSinSede: ["Hola, quiero agendar una cita y necesito el enlace de mi sede.",
-                  "Hi, I'd like to book an appointment and I need my salon's link."],
+  // Acá hubo textos de dos pantallas que ya no existen: una que listaba las
+  // sedes para elegir y otra que pedía el enlace de la tuya. La web tiene UNA
+  // pantalla y es la de la sede; sin apodo en la URL se entra a la primera de
+  // `AUTOAGENDAMIENTO_SEDES`. Lo que queda son los dos estados que sí hay que
+  // poder contar: todavía no llegó, y no se pudo traer.
   cargandoSedes: ["Cargando las sedes…", "Loading salons…"],
   errorSedes: ["No pudimos cargar las sedes. Revisa tu conexión e inténtalo de nuevo; si sigue igual, escríbenos por WhatsApp y te agendamos.",
                "We couldn't load the salons. Check your connection and try again; if it keeps failing, message us on WhatsApp and we'll book you."],

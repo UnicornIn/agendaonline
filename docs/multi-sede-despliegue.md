@@ -16,13 +16,17 @@ Ocho sedes agendan por web, cada una en su URL:
 | Niquía | `citas.rizosfelices.co/niquia` | `SD-26470` |
 | Apartadó | `citas.rizosfelices.co/apartado` | `SD-49436` |
 
-**La raíz `citas.rizosfelices.co` no ofrece ninguna sede**, a propósito. Una
-lista para elegir es una invitación a elegir mal: la clienta que no está
-segura toca la primera y la cita queda en otra ciudad, y eso no se descubre
-hasta el día de la cita, con ella parada en el salón equivocado. Quien llegue
-sin enlace ve una pantalla que le pide el suyo por WhatsApp, donde contesta
-alguien que sí sabe dónde atiende. Lo mismo para un enlace que no corresponde
-a ninguna sede.
+**La web tiene una sola pantalla y es la de la sede.** No hay lista para
+elegir ni pantalla intermedia: una lista es una invitación a elegir mal, y la
+clienta que no está segura toca la primera y la cita queda en otra ciudad.
+
+Quien entre a `citas.rizosfelices.co` a secas, o con un enlace que no
+corresponde a ninguna sede, entra a la **primera de `AUTOAGENDAMIENTO_SEDES`**
+—hoy Suramericana— y la URL se corrige sola. Por eso el orden de esa variable
+sí importa: la primera es la sede que atiende a quien llega sin enlace.
+
+Los enlaces viejos siguen sirviendo: `citas.rizosfelices.co/entrar` termina en
+`/suramericana/entrar`, en el mismo paso de siempre.
 
 ---
 
@@ -70,8 +74,10 @@ Suramericana sigue andando, y subir la web después.
    AUTOAGENDAMIENTO_SEDES=SD-88809:suramericana,SD-28904:restrepo,SD-22094:cali-norte,SD-18821:cali-sur,SD-89958:sabaneta,SD-36145:rionegro,SD-26470:niquia,SD-49436:apartado
    ```
 
-   El formato es `id:apodo`, separado por comas. Quitar una sede de esta lista
-   la apaga sin desplegar nada: su URL pasa a responder 404.
+   El formato es `id:apodo`, separado por comas. **La primera es la que
+   atiende a quien llega sin enlace**, así que Suramericana va de primera.
+   Quitar una sede de la lista la apaga sin desplegar nada: su URL deja de
+   existir y cae en la primera.
 
 3. **Darle Redeploy a mano.** Railway tiene `watchPatterns: ["Dockerfile"]`,
    así que un merge que solo toca código aparece como **SKIPPED** y no sube

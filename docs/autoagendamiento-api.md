@@ -87,8 +87,9 @@ primera que hace la web: con ella traduce el apodo de la URL antes de montar el 
 
 **La web nunca pinta esta lista.** Hubo una pantalla que la mostraba para elegir y se quitó el
 mismo día: ofrecer una lista de sedes es ofrecer agendar en la equivocada, que es justo lo que una
-URL por sede vino a evitar. Quien llega sin apodo —o con uno que no es de nadie— ve una pantalla
-que le pide su enlace por WhatsApp, sin nombrarle ninguna sede. El endpoint existe para validar.
+URL por sede vino a evitar. La web tiene una sola pantalla y es la de la sede; quien llega sin
+apodo —o con uno que no es de nadie— entra a la **primera** de la lista. El endpoint existe para
+traducir el apodo, no para mostrarse.
 
 ```json
 {
@@ -99,9 +100,9 @@ que le pide su enlace por WhatsApp, sin nombrarle ninguna sede. El endpoint exis
 }
 ```
 
-El orden es el de `AUTOAGENDAMIENTO_SEDES`. Hoy no lo mira nadie —la web solo busca su apodo en la
-lista— y se conserva porque es gratis y porque el día que algo tenga que recorrer las sedes, el
-orden en que operación las escribió dice más que el alfabeto.
+El orden es el de `AUTOAGENDAMIENTO_SEDES` y **la primera tiene un papel**: es la sede que atiende
+a quien entra sin apodo. Hoy es Suramericana. Que eso sea una variable de entorno y no una
+constante del frontend es lo que deja cambiarlo sin desplegar la web.
 
 `nombre` ya viene listo para pintar. En la colección las sedes se llaman `RF CALI NORTE`, que está
 escrito para la agenda interna; acá sale `Cali Norte`. Lo que operación escriba en

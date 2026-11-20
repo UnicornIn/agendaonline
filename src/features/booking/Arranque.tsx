@@ -5,7 +5,6 @@ import { config } from "../../config";
 import { fijarSede } from "../../data/sede";
 import { useApp } from "../../context/AppContext";
 import AppRouter from "../../router/AppRouter";
-import SinSedePage from "./pages/SinSedePage";
 import { Button } from "../../components/ui";
 
 /* =========================================================
@@ -22,10 +21,17 @@ import { Button } from "../../components/ui";
    aparte: el día que operación abra una sede, la web diría que no existe hasta
    que alguien recompile.
 
-   Esa lista se usa para VALIDAR y nunca se pinta. Hubo una pantalla que la
-   mostraba para elegir y se quitó el mismo día: ofrecer una lista de sedes es
-   ofrecer agendar en la equivocada, que es justo lo que una URL por sede vino
-   a evitar. Quien llega sin sede va a `SinSedePage`, a pedir la suya.
+   Esa lista se usa para TRADUCIR y nunca se pinta. Hubo dos pantallas acá y
+   las dos se fueron el mismo día: una que ofrecía las ocho sedes para elegir
+   —ofrecer una lista es ofrecer agendar en la equivocada, que es justo lo que
+   una URL por sede vino a evitar— y otra que pedía el enlace de la suya, que
+   no resolvía nada: dejaba a la clienta sin agendar y sin sede.
+
+   La web tiene UNA pantalla y es la de la sede. Sin apodo en la URL, o con
+   uno que no es de nadie, se entra a la primera de la lista. Hoy es
+   Suramericana, y eso no está escrito acá: es el orden de
+   `AUTOAGENDAMIENTO_SEDES`, o sea una decisión de operación que se cambia sin
+   desplegar la web.
    ========================================================= */
 
 /** El prefijo del sitio, si la web no vive en la raíz del dominio. */
@@ -48,6 +54,24 @@ function apodoDeLaUrl(): string {
   return (sinRaiz.split("/").filter(Boolean)[0] ?? "").toLowerCase();
 }
 
+/**
+ * La ruta tal cual, sin el prefijo del sitio: `/entrar`, `/fecha`, "" para la
+ * raíz.
+ *
+ * Se usa cuando el primer segmento NO resultó ser una sede. Entonces no era un
+ * apodo: era una ruta del flujo, de cuando la URL no llevaba sede. Se conserva
+ * entera y se le antepone la sede predeterminada, así `/entrar` termina en
+ * `/suramericana/entrar` y los enlaces viejos siguen sirviendo.
+ */
+function rutaDelFlujo(): string {
+  const crudo = ES_HASH
+    ? globalThis.location.hash.replace(/^#/, "")
+    : globalThis.location.pathname;
+  const sinRaiz = !ES_HASH && RAIZ && crudo.startsWith(RAIZ) ? crudo.slice(RAIZ.length) : crudo;
+  const partes = sinRaiz.split("/").filter(Boolean);
+  return partes.length ? "/" + partes.join("/") : "";
+}
+
 /** A dónde apunta la URL de una sede. Es la URL entera: entrar a una sede es
  *  fijar el `basename` del router, y eso no se puede hacer sin recargar. */
 function urlDeSede(slug: string): string {
@@ -57,7 +81,6 @@ function urlDeSede(slug: string): string {
 type Estado =
   | { fase: "cargando" }
   | { fase: "lista"; slug: string }
-  | { fase: "sin-sede"; desconocida: string | null }
   | { fase: "error"; mensaje: string };
 
 export default function Arranque() {
@@ -88,26 +111,25 @@ export default function Arranque() {
           return;
         }
 
-        // Una sola sede abierta: no hay nada que preguntar. Es el caso del
-        // despliegue de siempre, el de Suramericana sola, y así entrar a la
-        // raíz sigue llevando directo al flujo como llevaba ayer.
-        if (!apodo && sedes.length === 1) {
-          const sola = sedes[0];
-          globalThis.history.replaceState(
-            null,
-            "",
-            urlDeSede(sola.slug) + globalThis.location.search
-          );
-          fijarSede(sola);
-          setEstado({ fase: "lista", slug: sola.slug });
-          return;
-        }
-
-        // O entró a la raíz con varias sedes abiertas, o el apodo de la URL
-        // no es ninguna. Las dos terminan en la misma pantalla, que NO ofrece
-        // sedes: le manda a pedir la suya. La segunda además dice qué pasó,
-        // porque suele ser un enlace viejo.
-        setEstado({ fase: "sin-sede", desconocida: apodo || null });
+        // Sin apodo, o con uno que no es de ninguna sede. Se entra a la
+        // primera de la lista y se corrige la URL, en vez de mostrar una
+        // pantalla a medias: la clienta que teclea el dominio a secas quiere
+        // agendar, no leer por qué no puede.
+        //
+        // Lo que venía después del apodo se conserva: `/entrar` —un enlace de
+        // cuando la URL no tenía sede— termina en `/suramericana/entrar` y
+        // sigue funcionando. Si eso no es un paso del flujo, el router lo
+        // manda a la portada por su propia ruta `*`, que es donde cae
+        // cualquier URL inventada.
+        const predeterminada = sedes[0];
+        const resto = apodo ? rutaDelFlujo() : "";
+        globalThis.history.replaceState(
+          null,
+          "",
+          urlDeSede(predeterminada.slug) + resto + globalThis.location.search
+        );
+        fijarSede(predeterminada);
+        setEstado({ fase: "lista", slug: predeterminada.slug });
       })
       .catch((err: unknown) => {
         if (!vigente) return;
@@ -135,10 +157,6 @@ export default function Arranque() {
         <Button onClick={() => setIntento((n) => n + 1)}>{t("reintentar")}</Button>
       </div>
     );
-  }
-
-  if (estado.fase === "sin-sede") {
-    return <SinSedePage desconocida={estado.desconocida} />;
   }
 
   // El `key` por sede: si alguien llegara a cambiar de sede sin recargar, el
