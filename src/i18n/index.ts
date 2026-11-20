@@ -182,7 +182,13 @@ export const TEXTOS = {
   saldo: ["Pagas en el salón", "You pay at the salon"],
   elResto: ["el resto", "the rest"],
   comoPagar: ["Cómo hacer el abono", "How to pay the deposit"],
-  transferencia: ["Transferencia Bancolombia", "Bancolombia transfer"],
+  // El banco NO va en el texto: sale del dato de la sede. Estuvo acá
+  // mientras la única cuenta era de Bancolombia, y las cuentas reales de las
+  // demás sedes no lo son —El Restrepo recauda en Caja Social, Rionegro en
+  // NU—. Un número de un banco tecleado en otro no falla: puede caer en una
+  // cuenta ajena que exista con ese número.
+  transferencia: ["Transferencia", "Bank transfer"],
+  aNombreDe: ["A nombre de", "Account holder:"],
   ahorros: ["Cuenta de ahorros", "Savings account"],
   llave: ["Llave Bre-B", "Bre-B key"],
   // Sin uso hoy: la sede todavía no tiene link de pago y su fila no se

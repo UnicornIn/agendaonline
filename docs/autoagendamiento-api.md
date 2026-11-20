@@ -133,7 +133,13 @@ Todo lo que hoy está quemado en `src/config/business.ts` y debería salir de la
   "moneda": "COP",
   "abono": { "porDefecto": 50000, "porCategoria": { "Colorimetria": 90000 } },
   "whatsapp": "573001112233",
-  "pagos": { "cuenta": "36000000929", "llave": "@rfsuramericana", "link": null },
+  "pagos": {
+    "cuenta": "36000000929",
+    "banco": "Bancolombia",
+    "titular": null,
+    "llave": "@rfsuramericana",
+    "link": null
+  },
   "politicas": { "reprogramacion": "…" },
   "agenda": {
     "diasMaximos": 16,
@@ -150,8 +156,17 @@ Todo lo que hoy está quemado en `src/config/business.ts` y debería salir de la
 `autoagendamiento`. Son datos de cada una: la cuenta de Cali no es la de Suramericana y el abono
 cae en cajas distintas.
 
-**`pagos` son las tres filas de la pantalla del abono**, y `null` no es "vacío" sino "esta forma de
-pago no se ofrece": su fila no se pinta. Una sede a la que nadie le ha cargado la cuenta devuelve
+**`pagos` son las filas de la pantalla del abono**, y `null` no es "vacío" sino "esta forma de
+pago no se ofrece": su fila no se pinta.
+
+`banco` y `titular` acompañan a `cuenta` y los dos son nullables. El banco **no** se escribe en la
+copia de la web: de las seis cuentas que hay, El Restrepo recauda en Caja Social y Rionegro en NU.
+Un número de un banco tecleado en otro no falla por inválido —son 11 dígitos en varios— y puede
+caer en una cuenta ajena que exista con ese número, con la clienta llegando al salón con el
+comprobante de una plata que nadie recibió. Sin `banco`, la fila dice "Transferencia" y no promete
+ninguno. `titular` se pinta porque son cuentas a nombre de una persona: la app del banco le muestra
+ese nombre antes de confirmar, y verlo antes en la pantalla es lo que separa comprobar un dato de
+desconfiar de la transferencia. Una sede a la que nadie le ha cargado la cuenta devuelve
 los tres en `null` y llega al abono sin dónde pagar. Es a propósito. El respaldo fácil era la
 cuenta de Suramericana, que es la que existe, y eso mandaría el abono de Cali a la caja de Medellín
 sin que nada se vea raro hasta que alguien cuadre caja. **Regla: una sede no entra a

@@ -134,11 +134,26 @@ export default function DepositPage() {
   // es donde la cifra importa de verdad.
   const promo = descuento(reserva);
 
+  // El banco va en el título y sale del dato de la sede: "Transferencia
+  // Banco Caja Social". Sin banco queda "Transferencia" a secas, que es
+  // honesto; con el banco escrito en la copia —como estuvo— la clienta de El
+  // Restrepo veía "Bancolombia" sobre una cuenta de Caja Social.
+  //
+  // `titular` se pinta porque son cuentas a nombre de una persona. La app del
+  // banco le muestra ese nombre antes de confirmar: verlo acá primero es la
+  // diferencia entre comprobar un dato y desconfiar de la transferencia.
   const filas = (
     [
-      ["cuenta", t("transferencia"), `${t("ahorros")} · `],
-      ["llave", t("llave"), ""],
-    ] as Array<[clave: keyof PagosSede, titulo: string, prefijo: string]>
+      [
+        "cuenta",
+        [t("transferencia"), cuentas.banco].filter(Boolean).join(" "),
+        `${t("ahorros")} · `,
+        cuentas.titular ? `${t("aNombreDe")} ${cuentas.titular}` : null,
+      ],
+      ["llave", t("llave"), "", null],
+    ] as Array<
+      [clave: keyof PagosSede, titulo: string, prefijo: string, nota: string | null]
+    >
   ).filter(([clave]) => cuentas[clave]);
 
   return (
@@ -166,7 +181,7 @@ export default function DepositPage() {
 
       <Label>{t("comoPagar")}</Label>
       <div className="pay">
-        {filas.map(([clave, titulo, prefijo]) => (
+        {filas.map(([clave, titulo, prefijo, nota]) => (
           <div className="prow" key={clave}>
             <div>
               <div className="pm">{titulo}</div>
@@ -174,6 +189,7 @@ export default function DepositPage() {
                 {prefijo}
                 <span className="pv">{cuentas[clave]}</span>
               </div>
+              {nota && <div className="pd">{nota}</div>}
             </div>
             <Button variant="ghost" size="sm" onClick={() => copiar(clave)}>{t("copiar")}</Button>
           </div>

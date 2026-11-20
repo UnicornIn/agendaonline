@@ -133,6 +133,10 @@ export interface SedePublica {
  */
 export interface PagosSede {
   cuenta: string | null;
+  /** El banco de `cuenta`. Nullable: sin él la fila no promete ninguno. */
+  banco: string | null;
+  /** A nombre de quién está la cuenta, para que la clienta lo compruebe. */
+  titular: string | null;
   llave: string | null;
   link: string | null;
 }

@@ -44,6 +44,12 @@ Los enlaces viejos siguen sirviendo: `citas.rizosfelices.co/entrar` termina en
 - La cuenta de Suramericana movida ahí también, desde donde estaba quemada en
   el frontend.
 
+**En la base, aplicado el 2026-11-20.**
+
+- El recaudo de cinco sedes más —El Restrepo, Sabaneta, Apartadó, Niquía y
+  Rionegro— en `branch.<sede>.autoagendamiento.pagos`, con `banco` y
+  `titular`. Falta Cali Norte y Cali Sur.
+
 **En código, sin desplegar.**
 
 | Repo | Rama | Qué |
@@ -71,13 +77,17 @@ Suramericana sigue andando, y subir la web después.
 2. En Railway, servicio **`previewapi`**, agregar la variable:
 
    ```
-   AUTOAGENDAMIENTO_SEDES=SD-88809:suramericana,SD-28904:restrepo,SD-22094:cali-norte,SD-18821:cali-sur,SD-89958:sabaneta,SD-36145:rionegro,SD-26470:niquia,SD-49436:apartado
+   AUTOAGENDAMIENTO_SEDES=SD-88809:suramericana,SD-28904:restrepo,SD-89958:sabaneta,SD-36145:rionegro,SD-26470:niquia,SD-49436:apartado
    ```
 
    El formato es `id:apodo`, separado por comas. **La primera es la que
    atiende a quien llega sin enlace**, así que Suramericana va de primera.
    Quitar una sede de la lista la apaga sin desplegar nada: su URL deja de
    existir y cae en la primera.
+
+   **Cali Norte y Cali Sur no están en esa lista todavía**, por la regla de
+   más abajo: no tienen cuenta. Cuando lleguen se agregan al final —
+   `,SD-22094:cali-norte,SD-18821:cali-sur`— y basta reiniciar.
 
 3. **Darle Redeploy a mano.** Railway tiene `watchPatterns: ["Dockerfile"]`,
    así que un merge que solo toca código aparece como **SKIPPED** y no sube
@@ -87,7 +97,7 @@ Suramericana sigue andando, y subir la web después.
    `appagenda/DESPLIEGUE-PENDIENTE.md`.
 
 4. Comprobar: `GET https://previewapi.rizosfelices.co/public/agendamiento/sedes`
-   tiene que devolver las ocho.
+   tiene que devolver las seis de la lista.
 
 ### 2 · Web (agendaonline)
 
@@ -103,7 +113,11 @@ No hay que tocar nada del hosting. CloudFront ya reescribe el 403 de S3 a
 ## Antes de prender cada sede: la cuenta
 
 **Una sede no entra a `AUTOAGENDAMIENTO_SEDES` hasta que su documento tenga su
-cuenta.** Hoy solo Suramericana la tiene.
+cuenta.**
+
+Al 20 de noviembre de 2026 tienen cuenta escrita seis: Suramericana, El
+Restrepo, Sabaneta, Apartadó, Niquía y Rionegro. **Faltan Cali Norte y Cali
+Sur**, y hasta que lleguen esas dos no van en la variable.
 
 El backend no hereda la cuenta de otra sede a propósito. Lo fácil habría sido
 dejar la de Suramericana de respaldo, y eso mandaría el abono de Cali a la
@@ -117,6 +131,8 @@ Lo que hay que escribirle a cada sede, en `branch.<sede>.autoagendamiento`:
 {
   "pagos": {
     "cuenta": "36000000929",
+    "banco": "Bancolombia",
+    "titular": null,
     "llave": "@rfsuramericana",
     "link": null
   },
@@ -124,7 +140,14 @@ Lo que hay que escribirle a cada sede, en `branch.<sede>.autoagendamiento`:
 }
 ```
 
-- `cuenta` — la de ahorros Bancolombia donde cae el abono.
+- `cuenta` — la cuenta de ahorros donde cae el abono.
+- `banco` — el banco de esa cuenta. **No se asume Bancolombia:** El Restrepo
+  recauda en Caja Social y Rionegro en NU. Un número de un banco tecleado en
+  otro no falla por inválido y puede caer en una cuenta ajena. En `null` la
+  fila dice "Transferencia" sin prometer banco.
+- `titular` — a nombre de quién está la cuenta. Son cuentas personales; la app
+  del banco le muestra ese nombre a la clienta antes de confirmar, y verlo
+  antes en la pantalla evita que parezca una estafa.
 - `llave` — la llave Bre-B. `null` si la sede no tiene y su fila no se pinta.
 - `link` — link de pago. Hoy ninguna lo tiene; va en `null`.
 - `whatsapp` — a dónde escribe la clienta con dudas, solo dígitos con
