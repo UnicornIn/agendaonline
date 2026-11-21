@@ -532,38 +532,54 @@ que sigue, y no está hecho.
   clienta que no ve su servicio de siempre.
 - **Fuera las futuras.** Proponerle repetir lo que ya tiene para el jueves es el camino a dos citas
   iguales en la misma semana.
-- **Fuera lo que la sede ya no presta.** Se filtra contra el catálogo vivo: un bloque con un
-  servicio dado de baja sería un atajo que falla en el último paso.
+- **Fuera lo que esta sede no presta.** Se filtra contra el catálogo vivo —que además se recorta
+  por plantel— así que un bloque de color no se le ofrece en una sede donde nadie hace color. Sería
+  un atajo que falla en el último paso.
 - **La unidad es la combinación, no el servicio.** "Full + Ozonoterapia" y "Full solo" son dos
   bloques distintos, porque son dos citas distintas de pedir y de cobrar.
 - **Ventana de 18 meses** (`AUTOAGENDAMIENTO_HISTORIAL_MESES`): unas ocho o nueve citas de salón.
-- **Todo lo anterior es de ESTA sede**, menos una cosa.
+### La clienta es de la cadena; la estilista, de la sede
 
-### El diagnóstico es de ella, no de la sede
+Las citas se leen de **todas las sedes**. Una clienta de años en Suramericana entraba a El Restrepo
+y la web no sabía nada de ella: ni qué pide siempre, ni cómo es su cabello. Eso no era una regla,
+era el recorte de cuando había una sola sede.
 
-`diagnostico` —su densidad y su plasticidad— sale de sus citas en **cualquier sede**, y es lo único
-del historial que cruza esa frontera.
+Lo que hace que funcione hoy y no antes es que **el catálogo web es el mismo en las ocho**: la
+semilla sembró los 91 servicios en cada una, con un documento —y un id— por sede. Su
+`COMPLETO MEDIA P.A` de allá es el mismo servicio que el de acá con otro id, y se emparejan por
+nombre (`equivalencias_por_nombre`, sin tildes ni mayúsculas). Un nombre repetido en el catálogo no
+se empareja con ninguno: elegir cuál sería elegir por el salón.
 
-Su cabello es el mismo en Medellín y en Cali. Preguntárselo otra vez porque esta es su primera cita
-en El Restrepo es preguntarle algo que la cadena ya sabe, y es justo la parte del flujo que más
-cuesta: dos pantallas de fotos comparando rizos. Medido contra producción con clientas reales de
-Suramericana identificándose en El Restrepo, **cuatro de seis llegan con el diagnóstico resuelto**
-donde antes no llegaba ninguna.
+Qué cruza y qué no:
 
-Lo demás sí se queda en su sede, y a propósito: "lo que sueles pedir" puede no existir acá —el
-catálogo se recorta por plantel— y la profesional de siempre trabaja donde trabaja.
+| | |
+|---|---|
+| El **diagnóstico** (densidad, plasticidad) | **Cruza.** Su cabello es el mismo en Medellín y en Cali. |
+| **Lo que suele pedir** | **Cruza**, emparejado por nombre, y se cae si esta sede no lo presta. |
+| **La última visita** | **Cruza**, para que no contradiga a los bloques. |
+| **La profesional de siempre** | **No cruza.** Trabaja donde trabaja. |
 
-Dos detalles que hacen que funcione:
+El `profesional_id` de una cita de otra sede se borra antes de agrupar
+(`profesionales_solo_de_esta_sede`), no al resolver el nombre al final: así no llega nunca a la
+respuesta. La web ya lo ignoraba —exige también el nombre— pero el agente de WhatsApp lee el id.
+
+Dos detalles más:
 
 - Va sobre **todas las fichas del mismo teléfono**, no solo sobre la que ganó el desempate. Una
-  clienta de años en Suramericana que estrena El Restrepo es justamente el caso donde su ficha de
-  allá y la de acá son dos documentos distintos.
-- Se lee de las **citas**, no de los bloques ofrecibles. Antes salía de los tres bloques que la web
-  alcanza a mostrar, ya filtrados contra el catálogo de la sede: una clienta cuyo servicio de
-  siempre no estuviera en el catálogo web se quedaba sin diagnóstico aunque sus citas lo dijeran.
+  clienta que estrena sede es justamente el caso donde su ficha de allá y la de acá son dos
+  documentos distintos.
+- El diagnóstico se lee de las **citas** y sus ejes de la colección, no del catálogo de la sede: un
+  COLOR que acá no se presta igual dice de qué densidad es su cabello. Antes salía de los tres
+  bloques ofrecibles, así que una clienta cuyo servicio de siempre no estuviera en este catálogo se
+  quedaba sin diagnóstico aunque sus citas lo dijeran.
 
-Si esa lectura falla, el campo sale en `null` y la web vuelve a preguntar — que es lo que hacía
-antes de que esto existiera. Tumbar la identificación por el diagnóstico le costaría la cita.
+Si la lectura de los ejes falla, `diagnostico` sale en `null` y la web vuelve a preguntar — que es
+lo que hacía antes de que esto existiera. Tumbar la identificación por el diagnóstico le costaría
+la cita.
+
+Medido contra producción, clientas reales de Suramericana identificándose en El Restrepo: **cuatro
+de cinco llegan con su "repite lo de siempre"** y cuatro de seis con el diagnóstico resuelto, donde
+antes no llegaba ninguna.
 
 ### Por qué la respuesta trae más de lo que la web usa
 
