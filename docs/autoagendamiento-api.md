@@ -40,7 +40,7 @@ Esa pieza va donde están los datos, por tres razones concretas:
 - Prefijo: `/public/agendamiento`. Sin autenticación.
 - **La sede va en la ruta, como apodo.** Desde el 2026-11-19 cada sede tiene su URL pública
   —`citas.rizosfelices.co/sabaneta`— y ese primer segmento viaja en todas las llamadas:
-  `/public/agendamiento/{sede}/sabaneta/catalogo`. La única que no cuelga de una sede es `GET /sedes`,
+  `/public/agendamiento/sabaneta/catalogo`. La única que no cuelga de una sede es `GET /sedes`,
   que es la que las lista.
 
   Lo que viaja es el **apodo**, nunca el `sede_id`. `AUTOAGENDAMIENTO_SEDES` dice qué apodo
@@ -213,6 +213,27 @@ Los servicios agendables de la sede, con los ejes del nombre ya interpretados.
   todas las franquicias, incluidas las de México y Ecuador. Los de Rizos Colombia son los 96 de
   `franquicia_id: "FQ-11199"`.
 - Se excluye `activo === false`.
+- **Se excluye lo que no presta NADIE en esa sede.** El Restrepo no hace colorimetría: sus
+  estilistas tienen esos servicios en `servicios_no_presta`, y un servicio que está en la lista de
+  todas se cae del catálogo. Una categoría entera desaparece sola cuando se queda sin un solo
+  servicio, porque el menú se arma con lo que llega.
+
+  Sale del dato que la sede ya mantiene en el panel de estilistas, así que contratar o soltar a
+  alguien cambia la web sin que nadie toque la web. Lo que se consulta es el mismo plantel y el
+  mismo resolvedor por sede que usa `leer_profesionales` —`_plantel_de_la_sede`,
+  `servicios_no_presta_en`— a propósito: si el catálogo y la disponibilidad usaran reglas distintas,
+  la web ofrecería un servicio que después no tiene con quién agendarse.
+
+  El filtro se abstiene en tres casos, y los tres son el mismo criterio: un catálogo de más termina
+  en "no hay cupos" en la pantalla de la fecha, que se entiende; uno vacío no se distingue de un
+  sitio roto. No filtra si no pudo leer el plantel, si la sede no tiene ni una estilista activa
+  —casi siempre es un `activo: false` mal puesto, como le pasó a Niquía— o si el resultado se
+  quedaría sin un solo servicio.
+
+  Una lista de exclusiones vacía significa "sin restricción registrada", que es indistinguible de
+  "sin configurar": esa estilista presta todo. Así que **basta una recién creada, o una de prueba,
+  para que no se oculte nada.** Es la dirección segura del error, pero hay que saberla: en El
+  Restrepo una `prueba1` activa sostenía los 91 servicios ella sola.
 - `ejes` sale de parsear el nombre, igual que `magic-horse/app/booking/service_families.py`:
   densidad `EXTRA BAJA|BAJA|MEDIA|ALTA|EXTRA ALTA`, plasticidad `P.A|P.B`, `AFRO`, `NIÑO|NIÑA`, y el
   prefijo `X ` de reasignación interna. `familia` es el nombre sin esos modificadores.

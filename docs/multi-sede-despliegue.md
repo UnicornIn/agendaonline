@@ -160,6 +160,35 @@ reinicio, no un despliegue.
 
 ---
 
+## El catálogo de cada sede se recorta solo
+
+Un servicio que **ninguna** estilista de la sede presta no se ofrece ahí. Sale
+de lo que la sede ya mantiene en el panel de estilistas (`servicios_no_presta`),
+así que no hay que pedir que escondan o muestren módulos: se configura una vez
+por persona y la web sigue.
+
+Medido el 2026-11-20 contra producción: El Restrepo pasaría de 91 a **73
+servicios** —se le caen colorimetría entera y barbería: asesoría de color,
+balayage, tono directo, cubrimiento de canas, nivelación, decapado, corte
+hombre, barba y cejas—. Las demás sedes no ocultan nada todavía.
+
+**Lo que falta para que sirva en las otras sedes:** Cali Norte, Cali Sur,
+Sabaneta y Apartadó no tienen **ni una** exclusión configurada, y Rionegro y
+Niquía tienen una sola estilista con exclusiones. Mientras eso siga así el
+filtro no esconde nada ahí, que es la dirección segura: solo oculta lo que la
+sede dijo explícitamente que nadie hace.
+
+**Y un bloqueo concreto en El Restrepo:** `prueba1` (`ES-61392`) sigue activa.
+Como no tiene exclusiones, presta todo, y ella sola sostiene los 91 servicios.
+Además se le ofrecería a las clientas como estilista. Hay que desactivarla en
+la agenda, o agregarla a la variable:
+
+```
+AUTOAGENDAMIENTO_PROFESIONALES_OCULTOS=ES-41318,ES-61392
+```
+
+---
+
 ## Lo que quedó señalado y sin hacer
 
 - **Comisiones de 11 servicios.** La siembra creó en cada sede 91 servicios, y
