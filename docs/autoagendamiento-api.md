@@ -66,7 +66,7 @@ Esa pieza va donde están los datos, por tres razones concretas:
 
 | Código | HTTP | Cuándo |
 |---|---|---|
-| `sede_cerrada` | 200 | No es error: va en `motivo` de disponibilidad |
+| `cerrado` | 200 | No es error: va en `motivo` de disponibilidad |
 | `cupo_tomado` | 409 | El slot se ocupó entre que se vio y se pidió |
 | `retencion_vencida` | 410 | La retención expiró antes de confirmar |
 | `datos_invalidos` | 400 | Validación de formulario |
@@ -298,8 +298,20 @@ Solo id y nombre. Ni correo, ni teléfono, ni comisiones, ni estadísticas.
 }
 ```
 
-`motivo` es `ok` | `cerrado` | `lleno` | `sin_horario`. Una lista vacía de `cupos` significa tres
-cosas distintas y el frontend muestra un mensaje distinto para cada una; nunca se interpreta sola.
+`motivo` es `ok` | `sin_profesional` | `sin_horario` | `cerrado` | `lleno`, en ese orden de
+precedencia. Una lista vacía de `cupos` significa cuatro cosas distintas y el frontend muestra un
+mensaje distinto para cada una; nunca se interpreta sola.
+
+| | Qué pasó | Qué ve la clienta |
+|---|---|---|
+| `sin_profesional` | Nadie presta ESE bloque de servicios | "Ningún profesional presta todos los servicios que elegiste" |
+| `sin_horario` | Hay quién, pero nadie tiene turnos cargados | "Esta sede todavía no tiene horarios publicados" + WhatsApp |
+| `cerrado` | Tienen turnos, pero ninguna trabaja ese día | "La sede no abre ese día" |
+| `lleno` | Trabajan y no queda hueco | "No quedan horas libres ese día. Prueba con otro" |
+
+Separar los dos primeros no es cosmético: `sin_horario` falla **todos** los días, así que mandarla
+a "prueba con otro día" es mandarla a perder el rato. Es el estado real de una sede recién abierta
+—El Restrepo, a 2026-11-21— y por eso ese mensaje la manda al WhatsApp y no al calendario.
 
 `duracionMinutos` es la suma de las duraciones de los `servicioIds` — el bloque completo tiene que
 caber, no solo el primer servicio.
