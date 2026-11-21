@@ -537,6 +537,33 @@ que sigue, y no está hecho.
 - **La unidad es la combinación, no el servicio.** "Full + Ozonoterapia" y "Full solo" son dos
   bloques distintos, porque son dos citas distintas de pedir y de cobrar.
 - **Ventana de 18 meses** (`AUTOAGENDAMIENTO_HISTORIAL_MESES`): unas ocho o nueve citas de salón.
+- **Todo lo anterior es de ESTA sede**, menos una cosa.
+
+### El diagnóstico es de ella, no de la sede
+
+`diagnostico` —su densidad y su plasticidad— sale de sus citas en **cualquier sede**, y es lo único
+del historial que cruza esa frontera.
+
+Su cabello es el mismo en Medellín y en Cali. Preguntárselo otra vez porque esta es su primera cita
+en El Restrepo es preguntarle algo que la cadena ya sabe, y es justo la parte del flujo que más
+cuesta: dos pantallas de fotos comparando rizos. Medido contra producción con clientas reales de
+Suramericana identificándose en El Restrepo, **cuatro de seis llegan con el diagnóstico resuelto**
+donde antes no llegaba ninguna.
+
+Lo demás sí se queda en su sede, y a propósito: "lo que sueles pedir" puede no existir acá —el
+catálogo se recorta por plantel— y la profesional de siempre trabaja donde trabaja.
+
+Dos detalles que hacen que funcione:
+
+- Va sobre **todas las fichas del mismo teléfono**, no solo sobre la que ganó el desempate. Una
+  clienta de años en Suramericana que estrena El Restrepo es justamente el caso donde su ficha de
+  allá y la de acá son dos documentos distintos.
+- Se lee de las **citas**, no de los bloques ofrecibles. Antes salía de los tres bloques que la web
+  alcanza a mostrar, ya filtrados contra el catálogo de la sede: una clienta cuyo servicio de
+  siempre no estuviera en el catálogo web se quedaba sin diagnóstico aunque sus citas lo dijeran.
+
+Si esa lectura falla, el campo sale en `null` y la web vuelve a preguntar — que es lo que hacía
+antes de que esto existiera. Tumbar la identificación por el diagnóstico le costaría la cita.
 
 ### Por qué la respuesta trae más de lo que la web usa
 
