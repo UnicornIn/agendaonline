@@ -205,9 +205,19 @@ export default function DatePage() {
     navigate(PATHS.confirm);
   };
 
+  /**
+   * Los cuatro nombres son los que manda el backend, tal cual.
+   *
+   * Decían `sede_cerrada`, `dia_lleno`, `sin_horarios` y `fecha_pasada`, que
+   * no son ninguno de los que existen: el backend manda `cerrado`, `lleno`,
+   * `sin_horario` y `sin_profesional`. Así que los tres mensajes específicos
+   * eran código muerto y los cuatro casos caían en el genérico —"no quedan
+   * horas, prueba con otro día"— incluso cuando el problema no era el día.
+   */
   const mensajeSinHoras = (motivo: string | null): string => {
-    if (motivo === "sede_cerrada" || motivo === "fecha_pasada") return t("sedeCerrada");
-    if (motivo === "sin_horarios") return t("sinEstilistas");
+    if (motivo === "cerrado") return t("sedeCerrada");
+    if (motivo === "sin_profesional") return t("sinEstilistas");
+    if (motivo === "sin_horario") return t("sinHorario");
     return t("sinHoras");
   };
 

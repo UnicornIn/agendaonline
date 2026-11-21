@@ -43,10 +43,11 @@ export interface ProfesionalApi {
  * clienta que el salón no abra ese día a que el día esté lleno.
  */
 export type MotivoSinCupos =
-  | "sede_cerrada"
-  | "dia_lleno"
-  | "sin_horarios"
-  | "fecha_pasada"
+  | "ok"
+  | "cerrado"
+  | "lleno"
+  | "sin_horario"
+  | "sin_profesional"
   | null;
 
 export interface DisponibilidadApi {

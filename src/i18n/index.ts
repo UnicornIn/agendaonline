@@ -98,6 +98,11 @@ export const TEXTOS = {
   sinHoras: ["No quedan horas libres ese día. Prueba con otro.",
              "No times left that day. Try another one."],
   sedeCerrada: ["La sede no abre ese día.", "The salon is closed that day."],
+  // No es "prueba con otro día": sin turnos cargados fallan TODOS los días, y
+  // mandarla a seguir buscando es mandarla a perder el rato. Se le da la
+  // salida que sí funciona, que es el WhatsApp que ya está en pantalla.
+  sinHorario: ["Esta sede todavía no tiene horarios publicados. Escríbenos por WhatsApp y te agendamos.",
+               "This salon hasn't published its hours yet. Message us on WhatsApp and we'll book you."],
   sinEstilistas: ["Ningún profesional de la sede presta todos los servicios que elegiste.",
                   "No stylist at this salon performs every service you picked."],
   paso1: ["Paso 1 de 2 · Tu cabello", "Step 1 of 2 · Your hair"],
