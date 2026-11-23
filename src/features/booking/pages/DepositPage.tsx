@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { comprobanteApi, revisarArchivo } from "../../../api/comprobante";
-import { PAGOS } from "../../../data/catalog";
+import { pagos } from "../../../data/configAgenda";
+import type { PagosSede } from "../../../types";
 import { useApp } from "../../../context/AppContext";
 import { useToast } from "../../../context/ToastContext";
 import { PATHS } from "../../../router/paths";
@@ -109,29 +110,51 @@ export default function DepositPage() {
     void subir(f, miniatura(f));
   }
 
-  async function copiar(clave: keyof typeof PAGOS) {
+  async function copiar(clave: keyof PagosSede) {
     try {
-      await navigator.clipboard.writeText(PAGOS[clave] ?? "");
+      await navigator.clipboard.writeText(cuentas[clave] ?? "");
     } catch {
       /* sin permiso de portapapeles: el dato igual está a la vista */
     }
     toast(t("copiado"));
   }
 
+  // Las cuentas de ESTA sede. Salen de `GET /config` y no de una constante:
+  // hasta el multi-sede estaban escritas a mano y eran las de Suramericana,
+  // así que la clienta de Cali copiaba la cuenta de Medellín.
+  const cuentas = pagos();
+
   // Solo las formas de pago que de verdad existen. El filtro es la regla, no
   // un caso especial para el link: el día que la sede estrene o quite una, se
-  // cambia el dato en el catálogo y esta pantalla se acomoda sola.
+  // cambia el dato de la sede y esta pantalla se acomoda sola. También cubre
+  // a la sede a la que todavía nadie le cargó su cuenta: no se le ofrece una
+  // forma de pago que no es suya.
   // El descuento de la campaña, ya resuelto: acá la fecha YA está elegida, y
   // es lo que decide si entra o no. Es la última pantalla antes de pagar, que
   // es donde la cifra importa de verdad.
   const promo = descuento(reserva);
 
+  // El banco va en el título y sale del dato de la sede: "Transferencia
+  // Banco Caja Social". Sin banco queda "Transferencia" a secas, que es
+  // honesto; con el banco escrito en la copia —como estuvo— la clienta de El
+  // Restrepo veía "Bancolombia" sobre una cuenta de Caja Social.
+  //
+  // `titular` se pinta porque son cuentas a nombre de una persona. La app del
+  // banco le muestra ese nombre antes de confirmar: verlo acá primero es la
+  // diferencia entre comprobar un dato y desconfiar de la transferencia.
   const filas = (
     [
-      ["cuenta", t("transferencia"), `${t("ahorros")} · `],
-      ["llave", t("llave"), ""],
-    ] as Array<[clave: keyof typeof PAGOS, titulo: string, prefijo: string]>
-  ).filter(([clave]) => PAGOS[clave]);
+      [
+        "cuenta",
+        [t("transferencia"), cuentas.banco].filter(Boolean).join(" "),
+        `${t("ahorros")} · `,
+        cuentas.titular ? `${t("aNombreDe")} ${cuentas.titular}` : null,
+      ],
+      ["llave", t("llave"), "", null],
+    ] as Array<
+      [clave: keyof PagosSede, titulo: string, prefijo: string, nota: string | null]
+    >
+  ).filter(([clave]) => cuentas[clave]);
 
   return (
     <>
@@ -158,14 +181,15 @@ export default function DepositPage() {
 
       <Label>{t("comoPagar")}</Label>
       <div className="pay">
-        {filas.map(([clave, titulo, prefijo]) => (
+        {filas.map(([clave, titulo, prefijo, nota]) => (
           <div className="prow" key={clave}>
             <div>
               <div className="pm">{titulo}</div>
               <div className="pd">
                 {prefijo}
-                <span className="pv">{PAGOS[clave]}</span>
+                <span className="pv">{cuentas[clave]}</span>
               </div>
+              {nota && <div className="pd">{nota}</div>}
             </div>
             <Button variant="ghost" size="sm" onClick={() => copiar(clave)}>{t("copiar")}</Button>
           </div>

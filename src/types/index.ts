@@ -106,8 +106,47 @@ export interface Campana {
   aviso: string;
 }
 
+/**
+ * Una sede, como la nombra el mundo de afuera.
+ *
+ * `slug` es lo que va en la URL —`citas.rizosfelices.co/cali-norte`— y lo
+ * único que el backend acepta para identificarla. El `sede_id` interno
+ * (`SD-22094`) no sale en ninguna respuesta: lo que el navegador no tiene
+ * tampoco lo puede mandar de vuelta.
+ *
+ * `ciudad` puede ser null. Hay sedes sin ese dato cargado y la línea se pinta
+ * sin el separador en vez de dejarlo colgando.
+ */
+export interface SedePublica {
+  slug: string;
+  nombre: string;
+  ciudad: string | null;
+}
+
+/**
+ * Dónde transfiere la clienta el abono de ESTA sede.
+ *
+ * `null` no es "vacío", es "esta forma de pago no se ofrece": la fila
+ * desaparece de la pantalla del abono. Hasta el 2026-11-19 esto estaba
+ * quemado en `catalog.ts` con la cuenta de Suramericana, que con ocho sedes
+ * era mostrarle a la clienta de Cali dónde consignarle a Medellín.
+ */
+export interface PagosSede {
+  cuenta: string | null;
+  /** El banco de `cuenta`. Nullable: sin él la fila no promete ninguno. */
+  banco: string | null;
+  /** A nombre de quién está la cuenta, para que la clienta lo compruebe. */
+  titular: string | null;
+  llave: string | null;
+  link: string | null;
+}
+
 export interface ConfigAgenda {
+  sede: SedePublica & { direccion: string | null; telefono: string | null };
   abono: { porDefecto: number; porCategoria: Record<string, number> };
+  pagos: PagosSede;
+  /** A dónde manda el comprobante, solo dígitos con indicativo. De la sede. */
+  whatsapp: string;
   promocion: Campana;
 }
 
@@ -201,6 +240,17 @@ export interface Historial {
   nombre: string;
   /** Puede venir vacío: la agenda no siempre sabe quién la atendió. */
   estilista: string;
+  /**
+   * El `profesional_id` de esa persona. Es lo ÚNICO que el backend mira al
+   * apartar el cupo: el nombre es cosmético.
+   *
+   * Va junto al nombre y no aparte porque los dos tienen que salir del mismo
+   * bloque. Mientras este campo no existió, la web mostraba "Tu estilista:
+   * Sergio", mandaba la retención sin `profesionalId` y el servidor repartía
+   * por carga: la cita quedaba con otra persona y a horas que tampoco eran
+   * las de Sergio. Si es `null`, no hay preferencia que mostrar.
+   */
+  estilistaId: string | null;
   /** Ya formateada, o "" si no hay. Sale de `ultimaVisita` de la agenda. */
   ultimaVisita: string;
   dens: Densidad | null;

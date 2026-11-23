@@ -1,4 +1,4 @@
-import { campana } from "../../data/configAgenda";
+import { campana, hayCampana } from "../../data/configAgenda";
 import { useApp } from "../../context/AppContext";
 
 /**
@@ -24,11 +24,11 @@ export default function BannerPromocion() {
   const { lang, reserva, t } = useApp();
   if (!reserva.promocion) return null;
 
-  const { titulo, detalle, porcentaje } = campana();
-  // Sin campaña no hay nada que anunciar. Pasa entre el despliegue de la web
-  // y el de la agenda, y tambien el dia que la campaña se acabe: el backend
-  // deja de mandarla y el banner desaparece solo.
-  if (!porcentaje) return null;
+  // Sin campaña en ESTA sede no hay nada que anunciar: el backend deja de
+  // mandarla y el banner desaparece solo. Ver `hayCampana`.
+  if (!hayCampana()) return null;
+
+  const { titulo, detalle } = campana();
 
   return (
     <div className="promo" role="status">

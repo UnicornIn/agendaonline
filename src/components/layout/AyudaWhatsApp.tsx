@@ -1,4 +1,4 @@
-import { business } from "../../config";
+import { whatsappDeLaSede } from "../../data/configAgenda";
 import { useApp } from "../../context/AppContext";
 import { WhatsAppIcon } from "../ui/Icons";
 
@@ -35,7 +35,7 @@ export default function AyudaWhatsApp() {
   return (
     <a
       className="ayuda"
-      href={`https://wa.me/${business.whatsappDudas}?text=${encodeURIComponent(t("saludoDudas"))}`}
+      href={`https://wa.me/${whatsappDeLaSede()}?text=${encodeURIComponent(t("saludoDudas"))}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={texto}

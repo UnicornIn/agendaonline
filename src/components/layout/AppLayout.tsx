@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet, useLocation, useMatches, useNavigate, useNavigationType } from "react-router-dom";
 import { business } from "../../config";
+import { etiquetaDeSede } from "../../data/sede";
 import { useApp } from "../../context/AppContext";
 import { ToastProvider } from "../../context/ToastContext";
 import { MAX_STEP, PATHS, type RouteHandle } from "../../router/paths";
@@ -23,7 +24,7 @@ export default function AppLayout() {
   const navType = useNavigationType();
   const matches = useMatches();
   const [scrolled, setScrolled] = useState(false);
-  const { lang, cambiarIdioma, t } = useApp();
+  const { lang, cambiarIdioma } = useApp();
 
   // Acá y no en una pantalla: el marco es lo único que ve todos los pasos.
   useMetaPixel();
@@ -34,7 +35,7 @@ export default function AppLayout() {
 
   return (
     <div className="stage">
-      <div className="protolabel">{business.brand} · {t("sede")}</div>
+      <div className="protolabel">{business.brand} · {etiquetaDeSede(lang)}</div>
       <div className="device">
         <ToastProvider>
           <header className={`nav${scrolled ? " scrolled" : ""}`}>
@@ -59,6 +60,11 @@ export default function AppLayout() {
               React la desmonta y la vuelve a montar en cada navegación — y una
               puerta ahí dentro volvería a pedir el catálogo en cada pantalla.
               Acá se monta una vez y se pide una vez. */}
+          {/* `AyudaWhatsApp` va DENTRO de la puerta: el número al que escribe
+              es el de la sede y sale de `GET /config`. Afuera se pintaba
+              antes de que la config llegara y reventaba la pantalla entera
+              por un botón. Sigue estando fuera de `.screens`, que es lo que
+              lo mantiene quieto y sin re-animarse en cada paso. */}
           <CargaCatalogo>
             <main className="screens">
               <section
@@ -77,11 +83,8 @@ export default function AppLayout() {
                 <Outlet />
               </section>
             </main>
+            <AyudaWhatsApp />
           </CargaCatalogo>
-          {/* Fuera de `.screens` y por tanto fuera de la seccion que se
-              remonta en cada paso: asi no se re-anima en cada pantalla ni se
-              va con el scroll. Flota contra el marco, quieto. */}
-          <AyudaWhatsApp />
         </ToastProvider>
       </div>
     </div>

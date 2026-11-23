@@ -1,4 +1,5 @@
-import type { Campana, ConfigAgenda } from "../types";
+import { business } from "../config/business";
+import type { Campana, ConfigAgenda, PagosSede } from "../types";
 
 /* =========================================================
    Lo que la agenda sabe del negocio, traído una vez
@@ -71,6 +72,23 @@ const SIN_CAMPANA: Campana = {
 export const campana = (): Campana => configAgenda().promocion ?? SIN_CAMPANA;
 
 /**
+ * Si hay campaña viva EN ESTA SEDE, o sea algo que anunciar.
+ *
+ * Hace falta aparte de `reserva.promocion` porque los dos datos vienen de
+ * sitios distintos y pueden no coincidir. `reserva.promocion` dice "a este
+ * teléfono le toca" y se queda guardado en la reserva; la campaña sale de
+ * `GET /config` de la sede. Desde que el 20% es solo de Suramericana, quien
+ * se identifica allá y después abre el enlace de otra sede llega con el
+ * `true` puesto y sin campaña que lo respalde.
+ *
+ * Sin esto, esa combinación pinta el recuadro de la condición vacío: un
+ * marco con la estrella y ni una palabra adentro. Pasa igual en los minutos
+ * entre el despliegue de la agenda y el de la web, y el día que la campaña
+ * se acabe.
+ */
+export const hayCampana = (): boolean => campana().porcentaje > 0;
+
+/**
  * Si una cita de ESE día entra en la ventana de la campaña.
  *
  * Compara las fechas como texto `YYYY-MM-DD`, que ordena igual que la fecha y
@@ -86,4 +104,35 @@ export function cubreLaFecha(fecha: string | null): boolean {
   if (!fecha) return false;
   const { desde, hasta } = campana();
   return fecha >= desde && fecha <= hasta;
+}
+
+/**
+ * Dónde transfiere la clienta el abono EN ESTA SEDE.
+ *
+ * Hasta el 2026-11-19 esto era una constante en `catalog.ts` con la cuenta de
+ * Bancolombia y la llave Bre-B de Suramericana, escritas a mano. Con ocho
+ * sedes abiertas eso dejó de ser un atajo y pasó a ser un error que mueve
+ * plata: la clienta de Cali copiaba la cuenta de Medellín y transfería ahí.
+ *
+ * `null` sigue significando lo mismo que significaba allá —"esta forma de
+ * pago no se ofrece", y su fila no se pinta—, y ahora además cubre el caso de
+ * la sede a la que todavía nadie le cargó su cuenta. Que se vea vacío es a
+ * propósito: el servidor prefiere no decir nada a decir la cuenta de otra.
+ */
+export const pagos = (): PagosSede => configAgenda().pagos;
+
+/**
+ * A qué WhatsApp escribe quien tiene una duda a mitad del flujo.
+ *
+ * El de la sede si lo tiene, y si no el de la marca. El respaldo es de la
+ * marca y no de otra sede por lo mismo que los pagos: mandar a la clienta de
+ * Cali a escribirle a Medellín resuelve menos que mandarla a un número
+ * general donde alguien contesta.
+ */
+export function whatsappDeLaSede(): string {
+  // Lee `CONFIG` directo y no `configAgenda()`, que lanza. Es el único que
+  // puede preguntar ANTES de que la config llegue: el botón de ayuda también
+  // acompaña la pantalla de error, que es justamente la de cuando no llegó. Y
+  // es la pantalla donde más falta hace poder escribir.
+  return CONFIG?.whatsapp || business.whatsappDudas;
 }

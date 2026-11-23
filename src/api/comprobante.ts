@@ -1,6 +1,7 @@
 import { config } from "../config";
 import { agendaApi, type Contacto } from "./agenda";
 import { http } from "./httpClient";
+import { bajoSede } from "../data/sede";
 import type { ContextoMeta } from "../lib/metaPixel";
 
 /* =========================================================
@@ -93,7 +94,7 @@ export const comprobanteApi = {
   permiso: (f: File): Promise<PermisoDeSubida> =>
     config.useMocks
       ? mock.permiso(f)
-      : http.post<PermisoDeSubida>("/comprobante/firma", {
+      : http.post<PermisoDeSubida>(bajoSede("/comprobante/firma"), {
           tipo: f.type || "image/jpeg",
           bytes: f.size,
         }),

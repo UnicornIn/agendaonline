@@ -110,7 +110,17 @@ export default function IdentPage() {
     actualizar({
       // El de la agenda manda: es el nombre con el que va a quedar la cita.
       nombre: historial.nombre || nombre.trim(),
-      estilista: historial.estilista,
+      // `|| null` y no el string pelado: el historial trae "" cuando la agenda
+      // no sabe quién la atendió, y `"" ?? t("primeraDisp")` no cae al texto
+      // por defecto —`??` solo mira `null`—, así que el resumen mostraba un
+      // "Con:" en blanco. Sin preferencia, se dice que la asigna el salón.
+      estilista: historial.estilista || null,
+      // Sin esto el nombre llegaba hasta el resumen y la retención salía sin
+      // `profesionalId`, así que la elegía el servidor por carga. `?? null`
+      // por el historial que quedó en `sessionStorage` antes de que el campo
+      // existiera: `undefined` no es "sin preferencia" para la pantalla de
+      // fecha, que compara contra `null`.
+      estilistaId: historial.estilistaId ?? null,
       dens: historial.dens,
       plast: historial.plast,
       // La invitación de la campaña. Viaja en la reserva y no en el historial

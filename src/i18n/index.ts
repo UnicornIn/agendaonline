@@ -15,12 +15,33 @@ import type { Lang } from "../types";
 export const TEXTOS = {
   intro: ["Si ya eres cliente de Rizos Felices, con tus datos traemos el historial de tu cabello y agendas en dos toques.",
           "If you are already a Rizos Felices client, we bring up your hair history and you book in two taps."],
-  sede: ["Sede Suramericana · Medellín", "Suramericana · Medellín"],
-  horario: ["Atendemos con cita previa, de lunes a sábado de 9:00 a.m. a 6:00 p.m.",
-            "By appointment only, Monday to Saturday, 9:00 a.m. to 6:00 p.m."],
+  // La línea de la sede ya no vive acá: la arma `etiquetaDeSede()` en
+  // src/data/sede.ts con el nombre y la ciudad que manda el servidor. Con
+  // ocho sedes, un texto fijo era el nombre de una sola y el de nadie más.
+  // Sin horas, y a propósito. Decía "de lunes a sábado de 9:00 a.m. a 6:00
+  // p.m.", que era el horario de Suramericana escrito como si fuera el de la
+  // cadena: El Restrepo abre 8:00 y atiende domingos, y cada sede es distinta.
+  // La agenda no tiene horario de sede —el turno es de cada estilista— así que
+  // acá no hay de dónde sacar la hora correcta, y la equivocada manda a la
+  // clienta a llegar a una hora en que el salón está cerrado. Las horas de
+  // verdad las dice la pantalla de fecha, que sale de los turnos cargados.
+  horario: ["Atendemos con cita previa.", "By appointment only."],
   tituloInicio: ["Agenda tu cita<br>en Rizos Felices", "Book your appointment<br>at Rizos Felices"],
   btnCliente: ["Ya soy cliente de Rizos Felices", "I'm already a client"],
   btnPrimera: ["Cita primera vez", "First-time appointment"],
+
+  // ---- Mientras se resuelve la sede ----
+  //
+  // Acá hubo textos de dos pantallas que ya no existen: una que listaba las
+  // sedes para elegir y otra que pedía el enlace de la tuya. La web tiene UNA
+  // pantalla y es la de la sede; sin apodo en la URL se entra a la primera de
+  // `AUTOAGENDAMIENTO_SEDES`. Lo que queda son los dos estados que sí hay que
+  // poder contar: todavía no llegó, y no se pudo traer.
+  cargandoSedes: ["Cargando las sedes…", "Loading salons…"],
+  errorSedes: ["No pudimos cargar las sedes. Revisa tu conexión e inténtalo de nuevo; si sigue igual, escríbenos por WhatsApp y te agendamos.",
+               "We couldn't load the salons. Check your connection and try again; if it keeps failing, message us on WhatsApp and we'll book you."],
+  sinSedes: ["Por ahora no hay sedes agendando en línea. Escríbenos por WhatsApp y te agendamos.",
+             "No salons are booking online right now. Message us on WhatsApp and we'll book you."],
   btnAgente: ["Prefiero ser atendida por un agente", "I'd rather talk to an agent"],
   ayudaDudas: ["¿Tienes dudas? Escríbenos por WhatsApp", "Questions? Message us on WhatsApp"],
   saludoDudas: [
@@ -83,6 +104,11 @@ export const TEXTOS = {
   sinHoras: ["No quedan horas libres ese día. Prueba con otro.",
              "No times left that day. Try another one."],
   sedeCerrada: ["La sede no abre ese día.", "The salon is closed that day."],
+  // No es "prueba con otro día": sin turnos cargados fallan TODOS los días, y
+  // mandarla a seguir buscando es mandarla a perder el rato. Se le da la
+  // salida que sí funciona, que es el WhatsApp que ya está en pantalla.
+  sinHorario: ["Esta sede todavía no tiene horarios publicados. Escríbenos por WhatsApp y te agendamos.",
+               "This salon hasn't published its hours yet. Message us on WhatsApp and we'll book you."],
   sinEstilistas: ["Ningún profesional de la sede presta todos los servicios que elegiste.",
                   "No stylist at this salon performs every service you picked."],
   paso1: ["Paso 1 de 2 · Tu cabello", "Step 1 of 2 · Your hair"],
@@ -167,7 +193,13 @@ export const TEXTOS = {
   saldo: ["Pagas en el salón", "You pay at the salon"],
   elResto: ["el resto", "the rest"],
   comoPagar: ["Cómo hacer el abono", "How to pay the deposit"],
-  transferencia: ["Transferencia Bancolombia", "Bancolombia transfer"],
+  // El banco NO va en el texto: sale del dato de la sede. Estuvo acá
+  // mientras la única cuenta era de Bancolombia, y las cuentas reales de las
+  // demás sedes no lo son —El Restrepo recauda en Caja Social, Rionegro en
+  // NU—. Un número de un banco tecleado en otro no falla: puede caer en una
+  // cuenta ajena que exista con ese número.
+  transferencia: ["Transferencia", "Bank transfer"],
+  aNombreDe: ["A nombre de", "Account holder:"],
   ahorros: ["Cuenta de ahorros", "Savings account"],
   llave: ["Llave Bre-B", "Bre-B key"],
   // Sin uso hoy: la sede todavía no tiene link de pago y su fila no se

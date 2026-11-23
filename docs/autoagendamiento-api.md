@@ -38,9 +38,22 @@ Esa pieza va donde están los datos, por tres razones concretas:
 ## Reglas generales
 
 - Prefijo: `/public/agendamiento`. Sin autenticación.
-- La sede **no viaja en la petición**. Sale de `AUTOAGENDAMIENTO_SEDE_ID` (default `SD-88809`,
-  Suramericana). Si el día de mañana entra otra sede, se agrega a la variable y se expone un
-  `sedeId` opcional validado contra esa lista — nunca un `sede_id` libre desde el cliente.
+- **La sede va en la ruta, como apodo.** Desde el 2026-11-19 cada sede tiene su URL pública
+  —`citas.rizosfelices.co/sabaneta`— y ese primer segmento viaja en todas las llamadas:
+  `/public/agendamiento/sabaneta/catalogo`. La única que no cuelga de una sede es `GET /sedes`,
+  que es la que las lista.
+
+  Lo que viaja es el **apodo**, nunca el `sede_id`. `AUTOAGENDAMIENTO_SEDES` dice qué apodo
+  corresponde a qué sede (`SD-88809:suramericana,SD-89958:sabaneta,…`) y un apodo que no esté en
+  esa lista responde 404 sin tocar Mongo. La diferencia con aceptar un `sede_id` no es cosmética:
+  el `sede_id` es la llave con la que se leen citas, horarios y clientas en toda la agenda, y el
+  apodo solo significa algo a través de la lista. Si alguien pasa el parámetro de la ruta a una
+  consulta sin traducir, no encuentra nada en vez de encontrar la sede equivocada. El `sede_id` no
+  sale en ninguna respuesta.
+
+  El 404 es el mismo para "esa sede no existe" y para "esa sede no agenda por web", a propósito:
+  dos mensajes distintos le contarían a cualquiera que teclee nombres de ciudad qué sedes tiene la
+  cadena y cuáles tienen autoagendamiento.
 - Nada de este módulo devuelve datos de otra persona. En particular, al reconocer a una clienta
   existente responde `clienteReconocido: true` y **nunca** su nombre, correo, teléfono ni historial:
   si no, el endpoint sería un oráculo para comprobar si un número está en la base.
@@ -53,12 +66,13 @@ Esa pieza va donde están los datos, por tres razones concretas:
 
 | Código | HTTP | Cuándo |
 |---|---|---|
-| `sede_cerrada` | 200 | No es error: va en `motivo` de disponibilidad |
+| `cerrado` | 200 | No es error: va en `motivo` de disponibilidad |
 | `cupo_tomado` | 409 | El slot se ocupó entre que se vio y se pidió |
 | `retencion_vencida` | 410 | La retención expiró antes de confirmar |
 | `datos_invalidos` | 400 | Validación de formulario |
 | `servicio_no_disponible` | 400 | `servicioId` inexistente, inactivo o de otra sede |
 | `demasiadas_solicitudes` | 429 | Rate limit |
+| `sede_no_disponible` | 404 | El apodo de la ruta no está en `AUTOAGENDAMIENTO_SEDES` |
 | `agenda_no_disponible` | 503 | Falló la lectura de la agenda. **Nunca** se degrada a "no hay cupos" |
 
 > Un fallo de lectura jamás se traduce a lista vacía. Decir "no hay cupos" cuando en realidad no se
@@ -66,25 +80,66 @@ Esa pieza va donde están los datos, por tres razones concretas:
 
 ---
 
-## `GET /config`
+## `GET /sedes`
+
+Qué sedes agendan por internet. Es la única llamada del módulo que no cuelga de una sede, y la
+primera que hace la web: con ella traduce el apodo de la URL antes de montar el router.
+
+**La web nunca pinta esta lista.** Hubo una pantalla que la mostraba para elegir y se quitó el
+mismo día: ofrecer una lista de sedes es ofrecer agendar en la equivocada, que es justo lo que una
+URL por sede vino a evitar. La web tiene una sola pantalla y es la de la sede; quien llega sin
+apodo —o con uno que no es de nadie— entra a la **primera** de la lista. El endpoint existe para
+traducir el apodo, no para mostrarse.
+
+```json
+{
+  "sedes": [
+    { "slug": "suramericana", "nombre": "Suramericana", "ciudad": "Medellín" },
+    { "slug": "sabaneta", "nombre": "Sabaneta", "ciudad": null }
+  ]
+}
+```
+
+El orden es el de `AUTOAGENDAMIENTO_SEDES` y **la primera tiene un papel**: es la sede que atiende
+a quien entra sin apodo. Hoy es Suramericana. Que eso sea una variable de entorno y no una
+constante del frontend es lo que deja cambiarlo sin desplegar la web.
+
+`nombre` ya viene listo para pintar. En la colección las sedes se llaman `RF CALI NORTE`, que está
+escrito para la agenda interna; acá sale `Cali Norte`. Lo que operación escriba en
+`autoagendamiento.nombre_publico` le gana a esa limpieza, que es lo que hace falta para `Niquía` o
+para cualquier nombre con tilde.
+
+`ciudad` es nullable y se pinta solo si está: la portada dice "Sede Cali Norte · Cali" o "Sede
+Sabaneta", sin separador colgando.
+
+Una sede habilitada que no exista en la colección se cae de la lista, con un log. Responder 503
+dejaría el sitio entero sin portada por una sede mal escrita en una variable de entorno.
+
+---
+
+## `GET /{sede}/config`
 
 Todo lo que hoy está quemado en `src/config/business.ts` y debería salir de la agenda.
 
 ```json
 {
   "sede": {
-    "id": "SD-88809",
+    "slug": "suramericana",
     "nombre": "Suramericana",
-    "ciudad": null,
+    "ciudad": "Medellín",
     "direccion": "…",
     "telefono": "…"
   },
   "moneda": "COP",
   "abono": { "porDefecto": 50000, "porCategoria": { "Colorimetria": 90000 } },
-  "whatsapp": "573000000000",
-  "mediosDePago": [
-    { "id": "nequi", "nombre": "Nequi", "detalle": "…", "copiar": "…" }
-  ],
+  "whatsapp": "573001112233",
+  "pagos": {
+    "cuenta": "36000000929",
+    "banco": "Bancolombia",
+    "titular": null,
+    "llave": "@rfsuramericana",
+    "link": null
+  },
   "politicas": { "reprogramacion": "…" },
   "agenda": {
     "diasMaximos": 16,
@@ -95,10 +150,39 @@ Todo lo que hoy está quemado en `src/config/business.ts` y debería salir de la
 }
 ```
 
-`ciudad`, `direccion` y `telefono` son nullables. El modelo `Local` de la agenda **no tiene campo
-`ciudad`**, así que hoy llega siempre `null` y la web escribe solo "Suramericana". Derivarla de la
-dirección sería adivinar, y ya pasó una vez: el agente le dijo Bucaramanga a una clienta de una sede
-de Medellín. Para que aparezca, operación agrega el campo en la agenda.
+### Lo que es de cada sede
+
+`whatsapp`, `pagos`, `politicas` y el `nombre`/`ciudad` salen del documento de la sede, bajo
+`autoagendamiento`. Son datos de cada una: la cuenta de Cali no es la de Suramericana y el abono
+cae en cajas distintas.
+
+**`pagos` son las filas de la pantalla del abono**, y `null` no es "vacío" sino "esta forma de
+pago no se ofrece": su fila no se pinta.
+
+`banco` y `titular` acompañan a `cuenta` y los dos son nullables. El banco **no** se escribe en la
+copia de la web: de las seis cuentas que hay, El Restrepo recauda en Caja Social y Rionegro en NU.
+Un número de un banco tecleado en otro no falla por inválido —son 11 dígitos en varios— y puede
+caer en una cuenta ajena que exista con ese número, con la clienta llegando al salón con el
+comprobante de una plata que nadie recibió. Sin `banco`, la fila dice "Transferencia" y no promete
+ninguno. `titular` se pinta porque son cuentas a nombre de una persona: la app del banco le muestra
+ese nombre antes de confirmar, y verlo antes en la pantalla es lo que separa comprobar un dato de
+desconfiar de la transferencia. Una sede a la que nadie le ha cargado la cuenta devuelve
+los tres en `null` y llega al abono sin dónde pagar. Es a propósito. El respaldo fácil era la
+cuenta de Suramericana, que es la que existe, y eso mandaría el abono de Cali a la caja de Medellín
+sin que nada se vea raro hasta que alguien cuadre caja. **Regla: una sede no entra a
+`AUTOAGENDAMIENTO_SEDES` hasta que su documento tenga su cuenta.**
+
+`whatsapp` es nullable por lo mismo, en menor escala: el de otra sede manda a la clienta de Cali a
+escribirle a Medellín. En `null`, la web cae a su número de marca.
+
+El **abono** no se parte por sede, al contrario que lo anterior: cuánto se aparta para reservar es
+una regla de la cadena, y las ocho sedes abiertas facturan en pesos con el mismo catálogo. Un valor
+por sede serían ocho copias del mismo número esperando a desincronizarse. Eso cambia el día que
+entre una sede en otra moneda.
+
+`ciudad`, `direccion` y `telefono` son nullables. La `ciudad` sale de `autoagendamiento.ciudad` y
+no de la dirección: derivarla sería adivinar, y ya pasó una vez — el agente le dijo Bucaramanga a
+una clienta de una sede de Medellín.
 
 `anticipacionMinimaMinutos` y `pasoMinutos` se toman de los valores que Magic Horse ya ajustó contra
 clientas reales: 60 y 60. A 15 minutos la web ofrecería catorce horas seguidas, que se lee como una
@@ -106,7 +190,7 @@ máquina listando un arreglo y no como un salón ofreciendo horas.
 
 ---
 
-## `GET /catalogo`
+## `GET /{sede}/catalogo`
 
 Los servicios agendables de la sede, con los ejes del nombre ya interpretados.
 
@@ -129,6 +213,27 @@ Los servicios agendables de la sede, con los ejes del nombre ya interpretados.
   todas las franquicias, incluidas las de México y Ecuador. Los de Rizos Colombia son los 96 de
   `franquicia_id: "FQ-11199"`.
 - Se excluye `activo === false`.
+- **Se excluye lo que no presta NADIE en esa sede.** El Restrepo no hace colorimetría: sus
+  estilistas tienen esos servicios en `servicios_no_presta`, y un servicio que está en la lista de
+  todas se cae del catálogo. Una categoría entera desaparece sola cuando se queda sin un solo
+  servicio, porque el menú se arma con lo que llega.
+
+  Sale del dato que la sede ya mantiene en el panel de estilistas, así que contratar o soltar a
+  alguien cambia la web sin que nadie toque la web. Lo que se consulta es el mismo plantel y el
+  mismo resolvedor por sede que usa `leer_profesionales` —`_plantel_de_la_sede`,
+  `servicios_no_presta_en`— a propósito: si el catálogo y la disponibilidad usaran reglas distintas,
+  la web ofrecería un servicio que después no tiene con quién agendarse.
+
+  El filtro se abstiene en tres casos, y los tres son el mismo criterio: un catálogo de más termina
+  en "no hay cupos" en la pantalla de la fecha, que se entiende; uno vacío no se distingue de un
+  sitio roto. No filtra si no pudo leer el plantel, si la sede no tiene ni una estilista activa
+  —casi siempre es un `activo: false` mal puesto, como le pasó a Niquía— o si el resultado se
+  quedaría sin un solo servicio.
+
+  Una lista de exclusiones vacía significa "sin restricción registrada", que es indistinguible de
+  "sin configurar": esa estilista presta todo. Así que **basta una recién creada, o una de prueba,
+  para que no se oculte nada.** Es la dirección segura del error, pero hay que saberla: en El
+  Restrepo una `prueba1` activa sostenía los 91 servicios ella sola.
 - `ejes` sale de parsear el nombre, igual que `magic-horse/app/booking/service_families.py`:
   densidad `EXTRA BAJA|BAJA|MEDIA|ALTA|EXTRA ALTA`, plasticidad `P.A|P.B`, `AFRO`, `NIÑO|NIÑA`, y el
   prefijo `X ` de reasignación interna. `familia` es el nombre sin esos modificadores.
@@ -167,7 +272,7 @@ de la agenda**, nunca de los rangos del catálogo local.
 
 ---
 
-## `GET /profesionales?servicioIds=SV-1,SV-2`
+## `GET /{sede}/profesionales?servicioIds=SV-1,SV-2`
 
 ```json
 [{ "profesionalId": "P-123", "nombre": "Laura" }]
@@ -182,7 +287,7 @@ Solo id y nombre. Ni correo, ni teléfono, ni comisiones, ni estadísticas.
 
 ---
 
-## `GET /disponibilidad?fecha=&servicioIds=&profesionalId=`
+## `GET /{sede}/disponibilidad?fecha=&servicioIds=&profesionalId=`
 
 ```json
 {
@@ -193,8 +298,20 @@ Solo id y nombre. Ni correo, ni teléfono, ni comisiones, ni estadísticas.
 }
 ```
 
-`motivo` es `ok` | `cerrado` | `lleno` | `sin_horario`. Una lista vacía de `cupos` significa tres
-cosas distintas y el frontend muestra un mensaje distinto para cada una; nunca se interpreta sola.
+`motivo` es `ok` | `sin_profesional` | `sin_horario` | `cerrado` | `lleno`, en ese orden de
+precedencia. Una lista vacía de `cupos` significa cuatro cosas distintas y el frontend muestra un
+mensaje distinto para cada una; nunca se interpreta sola.
+
+| | Qué pasó | Qué ve la clienta |
+|---|---|---|
+| `sin_profesional` | Nadie presta ESE bloque de servicios | "Ningún profesional presta todos los servicios que elegiste" |
+| `sin_horario` | Hay quién, pero nadie tiene turnos cargados | "Esta sede todavía no tiene horarios publicados" + WhatsApp |
+| `cerrado` | Tienen turnos, pero ninguna trabaja ese día | "La sede no abre ese día" |
+| `lleno` | Trabajan y no queda hueco | "No quedan horas libres ese día. Prueba con otro" |
+
+Separar los dos primeros no es cosmético: `sin_horario` falla **todos** los días, así que mandarla
+a "prueba con otro día" es mandarla a perder el rato. Es el estado real de una sede recién abierta
+—El Restrepo, a 2026-11-21— y por eso ese mensaje la manda al WhatsApp y no al calendario.
 
 `duracionMinutos` es la suma de las duraciones de los `servicioIds` — el bloque completo tiene que
 caber, no solo el primer servicio.
@@ -220,7 +337,7 @@ libre(profesional, fecha) =
   queda asignada se resuelve al retener, no al mostrar.
 - No se ofrece nada que empiece antes de `ahora + anticipacionMinimaMinutos`.
 
-## `GET /disponibilidad/dias?desde=&hasta=&servicioIds=`
+## `GET /{sede}/disponibilidad/dias?desde=&hasta=&servicioIds=`
 
 ```json
 [{ "fecha": "2026-10-15", "hayCupo": true }]
@@ -231,7 +348,7 @@ descubra uno por uno. `hasta − desde` tope `diasMaximos`.
 
 ---
 
-## `POST /retencion`
+## `POST /{sede}/retencion`
 
 ```json
 { "fecha": "2026-10-15", "hora": "10:00", "servicioIds": ["SV-74469"], "profesionalId": null }
@@ -254,14 +371,14 @@ servicio de 2h.
 
 `409 cupo_tomado` si ya no hay nadie libre. El frontend recarga la disponibilidad del día.
 
-## `DELETE /retencion/{id}`
+## `DELETE /{sede}/retencion/{id}`
 
 Para cuando la clienta se devuelve en el flujo. Idempotente: una retención ya vencida o inexistente
 responde `204` igual.
 
 ---
 
-## `POST /cita`
+## `POST /{sede}/cita`
 
 ```json
 {
@@ -350,7 +467,7 @@ Una clienta de salón vuelve cada 6 a 10 semanas, y hoy repite el flujo largo en
 diagnóstico, opciones, detalle, complementos— para pedir exactamente lo mismo de la vez pasada.
 `POST /clienta/historial` existe para que ese caso sea un toque.
 
-### `POST /clienta/historial`
+### `POST /{sede}/clienta/historial`
 
 Recibe el mismo `contacto` que `POST /cita`:
 
@@ -427,11 +544,54 @@ que sigue, y no está hecho.
   clienta que no ve su servicio de siempre.
 - **Fuera las futuras.** Proponerle repetir lo que ya tiene para el jueves es el camino a dos citas
   iguales en la misma semana.
-- **Fuera lo que la sede ya no presta.** Se filtra contra el catálogo vivo: un bloque con un
-  servicio dado de baja sería un atajo que falla en el último paso.
+- **Fuera lo que esta sede no presta.** Se filtra contra el catálogo vivo —que además se recorta
+  por plantel— así que un bloque de color no se le ofrece en una sede donde nadie hace color. Sería
+  un atajo que falla en el último paso.
 - **La unidad es la combinación, no el servicio.** "Full + Ozonoterapia" y "Full solo" son dos
   bloques distintos, porque son dos citas distintas de pedir y de cobrar.
 - **Ventana de 18 meses** (`AUTOAGENDAMIENTO_HISTORIAL_MESES`): unas ocho o nueve citas de salón.
+### La clienta es de la cadena; la estilista, de la sede
+
+Las citas se leen de **todas las sedes**. Una clienta de años en Suramericana entraba a El Restrepo
+y la web no sabía nada de ella: ni qué pide siempre, ni cómo es su cabello. Eso no era una regla,
+era el recorte de cuando había una sola sede.
+
+Lo que hace que funcione hoy y no antes es que **el catálogo web es el mismo en las ocho**: la
+semilla sembró los 91 servicios en cada una, con un documento —y un id— por sede. Su
+`COMPLETO MEDIA P.A` de allá es el mismo servicio que el de acá con otro id, y se emparejan por
+nombre (`equivalencias_por_nombre`, sin tildes ni mayúsculas). Un nombre repetido en el catálogo no
+se empareja con ninguno: elegir cuál sería elegir por el salón.
+
+Qué cruza y qué no:
+
+| | |
+|---|---|
+| El **diagnóstico** (densidad, plasticidad) | **Cruza.** Su cabello es el mismo en Medellín y en Cali. |
+| **Lo que suele pedir** | **Cruza**, emparejado por nombre, y se cae si esta sede no lo presta. |
+| **La última visita** | **Cruza**, para que no contradiga a los bloques. |
+| **La profesional de siempre** | **No cruza.** Trabaja donde trabaja. |
+
+El `profesional_id` de una cita de otra sede se borra antes de agrupar
+(`profesionales_solo_de_esta_sede`), no al resolver el nombre al final: así no llega nunca a la
+respuesta. La web ya lo ignoraba —exige también el nombre— pero el agente de WhatsApp lee el id.
+
+Dos detalles más:
+
+- Va sobre **todas las fichas del mismo teléfono**, no solo sobre la que ganó el desempate. Una
+  clienta que estrena sede es justamente el caso donde su ficha de allá y la de acá son dos
+  documentos distintos.
+- El diagnóstico se lee de las **citas** y sus ejes de la colección, no del catálogo de la sede: un
+  COLOR que acá no se presta igual dice de qué densidad es su cabello. Antes salía de los tres
+  bloques ofrecibles, así que una clienta cuyo servicio de siempre no estuviera en este catálogo se
+  quedaba sin diagnóstico aunque sus citas lo dijeran.
+
+Si la lectura de los ejes falla, `diagnostico` sale en `null` y la web vuelve a preguntar — que es
+lo que hacía antes de que esto existiera. Tumbar la identificación por el diagnóstico le costaría
+la cita.
+
+Medido contra producción, clientas reales de Suramericana identificándose en El Restrepo: **cuatro
+de cinco llegan con su "repite lo de siempre"** y cuatro de seis con el diagnóstico resuelto, donde
+antes no llegaba ninguna.
 
 ### Por qué la respuesta trae más de lo que la web usa
 

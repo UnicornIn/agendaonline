@@ -5,7 +5,7 @@ import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
 import { business } from "../../../config/business";
 import { calcularTotal } from "../../../lib/pricing";
-import { campana } from "../../../data/configAgenda";
+import { campana, hayCampana } from "../../../data/configAgenda";
 import { trackInitiateCheckout } from "../../../lib/metaPixel";
 import { aISO, desdeISO, diasDesde, DOW, hoy, MON, sumarDias } from "../../../lib/dates";
 import { BlockNote, Button, Chip, Kicker, Label, LinkButton, Sticky, Sub, Title } from "../../../components/ui";
@@ -99,6 +99,23 @@ export default function DatePage() {
     };
   }, [idsClave]);
 
+  /* ---- la preferencia que viene del historial tiene que caber en ESTE bloque ---- */
+  /**
+   * Quien la atendió la vez pasada puede no prestar lo que escogió hoy. Con su
+   * id puesto, la disponibilidad vuelve vacía con `sin_horarios` y la pantalla
+   * dice "no hay estilistas": un callejón sin salida, cuando lo honesto es
+   * ofrecerle la primera disponible.
+   *
+   * Solo se suelta cuando la lista LLEGÓ y trae gente: `null` es que todavía no
+   * respondió y `[]` es que no se pudo pedir, y en esos dos casos el id sigue
+   * siendo la mejor información que hay —el servidor filtra igual con él.
+   */
+  useEffect(() => {
+    if (!profesionales?.length || !reserva.estilistaId) return;
+    if (profesionales.some((p) => p.profesionalId === reserva.estilistaId)) return;
+    actualizar({ estilista: null, estilistaId: null, hora: null });
+  }, [profesionales, reserva.estilistaId, actualizar]);
+
   /* ---- qué días tienen algo, para no dejarla tocar uno por uno ---- */
   useEffect(() => {
     if (dias.length) pedir(dias[0], dias[dias.length - 1]);
@@ -188,9 +205,19 @@ export default function DatePage() {
     navigate(PATHS.confirm);
   };
 
+  /**
+   * Los cuatro nombres son los que manda el backend, tal cual.
+   *
+   * Decían `sede_cerrada`, `dia_lleno`, `sin_horarios` y `fecha_pasada`, que
+   * no son ninguno de los que existen: el backend manda `cerrado`, `lleno`,
+   * `sin_horario` y `sin_profesional`. Así que los tres mensajes específicos
+   * eran código muerto y los cuatro casos caían en el genérico —"no quedan
+   * horas, prueba con otro día"— incluso cuando el problema no era el día.
+   */
   const mensajeSinHoras = (motivo: string | null): string => {
-    if (motivo === "sede_cerrada" || motivo === "fecha_pasada") return t("sedeCerrada");
-    if (motivo === "sin_horarios") return t("sinEstilistas");
+    if (motivo === "cerrado") return t("sedeCerrada");
+    if (motivo === "sin_profesional") return t("sinEstilistas");
+    if (motivo === "sin_horario") return t("sinHorario");
     return t("sinHoras");
   };
 
@@ -204,7 +231,7 @@ export default function DatePage() {
           depende del día de la CITA, no del día en que se agenda, y esta es
           la pantalla donde se escoge ese día. El texto en español viene del
           backend, que es quien aplica la regla al cobrar. */}
-      {reserva.promocion && (
+      {reserva.promocion && hayCampana() && (
         <BlockNote icon="★">
           {lang === "es" ? campana().aviso : t("promoAviso")}
         </BlockNote>

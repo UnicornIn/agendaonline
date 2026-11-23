@@ -1,6 +1,5 @@
 export interface BusinessConfig {
   brand: string;
-  hoursText: string;
   /** Cuántos días hacia adelante se pueden ver. El backend manda el suyo en /config. */
   diasAdelanteFallback: number;
   /** Hasta dónde llega el calendario, contado desde hoy. */
@@ -25,7 +24,6 @@ export interface BusinessConfig {
  */
 export const business: Readonly<BusinessConfig> = Object.freeze({
   brand: "Rizos Felices",
-  hoursText: "Atendemos con cita previa, de lunes a sábado de 9:00 a.m. a 6:00 p.m.",
   diasAdelanteFallback: 16,
 
   // Hasta dónde deja escoger el calendario. La tira sigue mostrando los
