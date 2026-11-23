@@ -5,7 +5,7 @@ import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
 import { business } from "../../../config/business";
 import { calcularTotal } from "../../../lib/pricing";
-import { campana } from "../../../data/configAgenda";
+import { campana, hayCampana } from "../../../data/configAgenda";
 import { trackInitiateCheckout } from "../../../lib/metaPixel";
 import { aISO, desdeISO, diasDesde, DOW, hoy, MON, sumarDias } from "../../../lib/dates";
 import { BlockNote, Button, Chip, Kicker, Label, LinkButton, Sticky, Sub, Title } from "../../../components/ui";
@@ -231,7 +231,7 @@ export default function DatePage() {
           depende del día de la CITA, no del día en que se agenda, y esta es
           la pantalla donde se escoge ese día. El texto en español viene del
           backend, que es quien aplica la regla al cobrar. */}
-      {reserva.promocion && (
+      {reserva.promocion && hayCampana() && (
         <BlockNote icon="★">
           {lang === "es" ? campana().aviso : t("promoAviso")}
         </BlockNote>

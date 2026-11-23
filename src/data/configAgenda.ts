@@ -72,6 +72,23 @@ const SIN_CAMPANA: Campana = {
 export const campana = (): Campana => configAgenda().promocion ?? SIN_CAMPANA;
 
 /**
+ * Si hay campaña viva EN ESTA SEDE, o sea algo que anunciar.
+ *
+ * Hace falta aparte de `reserva.promocion` porque los dos datos vienen de
+ * sitios distintos y pueden no coincidir. `reserva.promocion` dice "a este
+ * teléfono le toca" y se queda guardado en la reserva; la campaña sale de
+ * `GET /config` de la sede. Desde que el 20% es solo de Suramericana, quien
+ * se identifica allá y después abre el enlace de otra sede llega con el
+ * `true` puesto y sin campaña que lo respalde.
+ *
+ * Sin esto, esa combinación pinta el recuadro de la condición vacío: un
+ * marco con la estrella y ni una palabra adentro. Pasa igual en los minutos
+ * entre el despliegue de la agenda y el de la web, y el día que la campaña
+ * se acabe.
+ */
+export const hayCampana = (): boolean => campana().porcentaje > 0;
+
+/**
  * Si una cita de ESE día entra en la ventana de la campaña.
  *
  * Compara las fechas como texto `YYYY-MM-DD`, que ordena igual que la fecha y
