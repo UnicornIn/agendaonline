@@ -18,8 +18,14 @@ export const TEXTOS = {
   // La línea de la sede ya no vive acá: la arma `etiquetaDeSede()` en
   // src/data/sede.ts con el nombre y la ciudad que manda el servidor. Con
   // ocho sedes, un texto fijo era el nombre de una sola y el de nadie más.
-  horario: ["Atendemos con cita previa, de lunes a sábado de 9:00 a.m. a 6:00 p.m.",
-            "By appointment only, Monday to Saturday, 9:00 a.m. to 6:00 p.m."],
+  // Sin horas, y a propósito. Decía "de lunes a sábado de 9:00 a.m. a 6:00
+  // p.m.", que era el horario de Suramericana escrito como si fuera el de la
+  // cadena: El Restrepo abre 8:00 y atiende domingos, y cada sede es distinta.
+  // La agenda no tiene horario de sede —el turno es de cada estilista— así que
+  // acá no hay de dónde sacar la hora correcta, y la equivocada manda a la
+  // clienta a llegar a una hora en que el salón está cerrado. Las horas de
+  // verdad las dice la pantalla de fecha, que sale de los turnos cargados.
+  horario: ["Atendemos con cita previa.", "By appointment only."],
   tituloInicio: ["Agenda tu cita<br>en Rizos Felices", "Book your appointment<br>at Rizos Felices"],
   btnCliente: ["Ya soy cliente de Rizos Felices", "I'm already a client"],
   btnPrimera: ["Cita primera vez", "First-time appointment"],
