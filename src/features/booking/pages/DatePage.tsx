@@ -96,10 +96,17 @@ export default function DatePage() {
    */
   const maquinistas = maquinaDeEstaSede();
   const conMaquina = reserva.corte === "maquina" && maquinistas.length > 0;
+  /**
+   * `null` mientras la lista no ha llegado, y eso hay que respetarlo: `null`
+   * es "todavía no se sabe" y `[]` es "no hay nadie". Filtrar un `null` como
+   * si fuera lista vacía le mostraba a la clienta "nadie disponible para
+   * corte con máquina, escríbenos por WhatsApp" durante el segundo que tarda
+   * la respuesta — en local no se alcanza a ver y en producción sí.
+   */
   const ofrecidos = useMemo(
     () =>
-      conMaquina
-        ? (profesionales ?? []).filter((p) => maquinistas.includes(p.profesionalId))
+      conMaquina && profesionales
+        ? profesionales.filter((p) => maquinistas.includes(p.profesionalId))
         : profesionales,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [conMaquina, profesionales]
@@ -300,7 +307,12 @@ export default function DatePage() {
           )}
         </div>
       )}
-      {conMaquina && <p className="sub" style={{ margin: "0 0 12px" }}>{t("maquinaQuienes")}</p>}
+      {/* Solo cuando de verdad hay a quién escoger: junto al aviso de "nadie
+          disponible" se contradecía, y debajo de una lista que aún no llega
+          explica algo que no está en pantalla. */}
+      {conMaquina && !!ofrecidos?.length && (
+        <p className="sub" style={{ margin: "0 0 12px" }}>{t("maquinaQuienes")}</p>
+      )}
 
       <Label>{t("dia")}</Label>
       <div className="days">
