@@ -32,7 +32,16 @@ export interface Presentacion {
   /** Las FAMILIAS que se ofrecen como adicional de este servicio, en orden.
    *  Su precio y su duración salen del backend, igual que los principales. */
   adicionales?: string[];
+  /**
+   * Si el servicio lleva corte, y por lo tanto hay que preguntar con qué se
+   * hace. Vive acá y no en la agenda porque la agenda no guarda qué contiene
+   * un servicio: sabe su nombre, su precio y su duración, nada más.
+   */
+  requiereCorte?: boolean;
 }
+
+/** El adicional que es un corte, para preguntar también cuando se agrega suelto. */
+export const ADICIONAL_CORTE = "Corte";
 
 /**
  * Familias que la agenda tiene y la web no ofrece, a propósito.
@@ -63,6 +72,7 @@ export const NOMBRE_ADICIONAL: Record<string, string> = {
 
 export const PRESENTACION: Record<string, Presentacion> = {
   "COMPLETO": {
+    requiereCorte: true,
     id: "full", grupo: "Servicio Full", orden: 10, nombre: "Servicio Full",
     desc: "El servicio más completo de la casa: resuelve el cabello entero en una sola cita.",
     incluye: "Corte, lavado, Tratamiento HNH, evaluación y asesoría completa que se envía por correo, definición detallada, secado 100%",
@@ -70,6 +80,7 @@ export const PRESENTACION: Record<string, Presentacion> = {
     adicionales: ["OZONOTERAPIA COMBO", "ASESORIA DE COLOR", "DETOX"],
   },
   "SOLO CORTE": {
+    requiereCorte: true,
     id: "m-corte", grupo: "Mujeres", orden: 10, nombre: "Solo corte",
     desc: "Corte de forma o puntas.",
     incluye: "No incluye lavado, ni definición, ni secado",
@@ -77,6 +88,7 @@ export const PRESENTACION: Record<string, Presentacion> = {
     adicionales: ["LAVADO", "DEFINICION SENCILLA COMBO", "SECADO", "MASCARILLA COMBO", "OZONOTERAPIA COMBO", "ASESORIA DE COLOR", "DETOX"],
   },
   "CORTE + DEFINICION SENCILLA": {
+    requiereCorte: true,
     id: "m-corte-def", grupo: "Mujeres", orden: 20, nombre: "Corte + definición sencilla",
     desc: "Cualquier corte + definición sencilla.",
     incluye: "Corte + definición sencilla, secado al 70%",
@@ -103,6 +115,7 @@ export const PRESENTACION: Record<string, Presentacion> = {
     adicionales: ["CORTE COMBO", "ASESORIA DE COLOR", "DETOX"],
   },
   "TRANSICION GRAN CORTE": {
+    requiereCorte: true,
     id: "t-gran-corte", grupo: "Transición", orden: 10,
     nombre: "Gran corte + definición + tratamiento",
     desc: "Para dejar la transición atrás de una vez.",
@@ -110,6 +123,7 @@ export const PRESENTACION: Record<string, Presentacion> = {
     adicionales: ["DETOX"],
   },
   "TRANSICION DOBLE TEXTURA": {
+    requiereCorte: true,
     id: "t-completo", grupo: "Transición", orden: 20, nombre: "Transición con doble textura",
     desc: "Acompaña el rizo mientras crece, con las dos texturas trabajadas.",
     incluye: "Corte, lavado, mascarilla, definición detallada en la parte rizada, definición detallada en la parte lisa, asesoría, secado",
@@ -147,6 +161,7 @@ export const PRESENTACION: Record<string, Presentacion> = {
     adicionales: ["NIVELACION DE COLOR", "DECAPADO/EXTRACCION"],
   },
   "CORTE HOMBRE": {
+    requiereCorte: true,
     id: "h-corte", grupo: "Hombres", orden: 10, nombre: "Corte hombre",
     desc: "Solo corte, con tijera o máquina.",
     incluye: "Corte de cabello y laterales (base)",
@@ -154,6 +169,7 @@ export const PRESENTACION: Record<string, Presentacion> = {
     adicionales: ["BARBA Y CEJAS", "DEFINICION SENCILLA COMBO", "MASCARILLA COMBO", "OZONOTERAPIA COMBO", "DETOX"],
   },
   "CORTE HOMBRE + DEFINICION SENCILLA": {
+    requiereCorte: true,
     id: "h-corte-def", grupo: "Hombres", orden: 20, nombre: "Corte hombre + definición sencilla",
     desc: "El corte básico de hombre con definición sencilla, barba y cejas.",
     incluye: "Corte, lavado, definición sencilla, secado al 70%, barba y cejas",
@@ -161,6 +177,7 @@ export const PRESENTACION: Record<string, Presentacion> = {
     adicionales: ["MASCARILLA COMBO", "OZONOTERAPIA COMBO", "ASESORIA DE COLOR", "DETOX"],
   },
   "COMPLETO HOMBRE": {
+    requiereCorte: true,
     id: "h-full", grupo: "Hombres", orden: 30, nombre: "Servicio Full hombre",
     desc: "El servicio completo para hombre. Incluye barba y cejas.",
     incluye: "Corte, lavado, Tratamiento HNH, evaluación y asesoría completa que se envía por correo, definición detallada, secado 100%, barba y cejas",
@@ -168,11 +185,13 @@ export const PRESENTACION: Record<string, Presentacion> = {
     adicionales: ["OZONOTERAPIA COMBO", "ASESORIA DE COLOR", "DETOX"],
   },
   "NINO 0 A 8": {
+    requiereCorte: true,
     id: "n-0-8", grupo: "Niños", orden: 10, nombre: "Niños · 0 a 8 años",
     desc: "Corte + refrescado con definición sencilla.",
     incluye: "Corte + refrescado con definición sencilla",
   },
   "NINO 9 EN ADELANTE": {
+    requiereCorte: true,
     id: "n-9", grupo: "Niños", orden: 30, nombre: "Niños · 9 años en adelante",
     desc: "Corte + definición sencilla.",
     incluye: "Lavado, corte + definición sencilla + secado al 70%",

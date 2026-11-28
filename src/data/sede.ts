@@ -1,3 +1,4 @@
+import { config } from "../config";
 import type { Lang, SedePublica } from "../types";
 
 /* =========================================================
@@ -38,6 +39,17 @@ export function fijarSede(sede: SedePublica): void {
 export function sedeActiva(): SedePublica {
   if (!SEDE) throw new Error("Se usó la sede antes de fijarla");
   return SEDE;
+}
+
+/**
+ * Quiénes cortan con máquina EN ESTA SEDE. Vacío = acá no se pregunta.
+ *
+ * Cada sede tiene su propio plantel, así que la lista se lee por apodo. Una
+ * sede sin nadie anotado no muestra la pregunta: ofrecer "con máquina" donde
+ * no hay quien la use es hacer elegir para después decir que no hay nadie.
+ */
+export function maquinaDeEstaSede(): string[] {
+  return config.profesionalesMaquina[sedeActiva().slug] ?? [];
 }
 
 /**

@@ -13,6 +13,7 @@ import DensityPage from "../features/booking/pages/DensityPage";
 import PlasticityPage from "../features/booking/pages/PlasticityPage";
 import DetailPage from "../features/booking/pages/DetailPage";
 import ExtrasPage from "../features/booking/pages/ExtrasPage";
+import CortePage from "../features/booking/pages/CortePage";
 import DatePage from "../features/booking/pages/DatePage";
 import ConfirmPage from "../features/booking/pages/ConfirmPage";
 import DepositPage from "../features/booking/pages/DepositPage";
@@ -36,6 +37,7 @@ export const routes: RouteObject[] = [
       { path: PATHS.plasticity, element: guarded(["svc", "dens"], <PlasticityPage />), handle: step(3.6) },
       { path: PATHS.detail, element: guarded(["svc"], <DetailPage />), handle: step(4.2) },
       { path: PATHS.extras, element: guarded(["svc"], <ExtrasPage />), handle: step(4.6) },
+      { path: PATHS.corte, element: guarded(["svc"], <CortePage />), handle: step(4.8) },
       { path: PATHS.date, element: guarded(["svc"], <DatePage />), handle: step(5) },
       { path: PATHS.confirm, element: guarded(["svc", "fecha", "hora"], <ConfirmPage />), handle: step(6) },
       { path: PATHS.deposit, element: guarded(["svc", "fecha", "hora", "nombre"], <DepositPage />), handle: step(6.6) },

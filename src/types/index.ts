@@ -72,6 +72,12 @@ export interface Servicio {
   incluye?: string;
   nota?: string;
   /**
+   * Si este servicio lleva corte y por lo tanto hay que preguntar con qué se
+   * hace. Sale de `presentacion.ts`: la agenda no sabe qué contiene un
+   * servicio, solo su nombre y su precio.
+   */
+  requiereCorte?: boolean;
+  /**
    * Los escalones por densidad y plasticidad. Un servicio CON matriz pide
    * diagnóstico; uno sin ella tiene precio y tiempo fijos.
    */
@@ -176,6 +182,15 @@ export interface Total extends Resuelto {
 
 export type Modo = "cliente" | "nueva";
 
+/**
+ * Con qué se hace el corte.
+ *
+ * No es un gusto: es quién puede atenderla. Solo parte del plantel usa
+ * máquina, así que la respuesta recorta la lista de estilistas y, con ella,
+ * los horarios. Por eso se pregunta ANTES de la fecha y no después.
+ */
+export type TipoCorte = "tijera" | "maquina";
+
 export interface Reserva {
   modo: Modo | null;
   /** Si a quien se identificó le toca el beneficio de la campaña. Sale del
@@ -191,6 +206,8 @@ export interface Reserva {
   svc: string | null;
   dens: Densidad | null;
   plast: Plasticidad | null;
+  /** Con qué se hace el corte. null en los servicios que no lo incluyen. */
+  corte: TipoCorte | null;
   /** Nombres de los adicionales elegidos, como vienen del catálogo */
   extras: string[];
   /** El nombre, para mostrar. null = la asigna el salón. */
@@ -234,6 +251,19 @@ export interface ServicioPasado {
   grupo?: string;
   /** El nombre viejo, para la tarjeta. Solo con `grupo`. */
   nombre?: string;
+  /**
+   * Quién le hizo ESTE servicio la última vez.
+   *
+   * Va por bloque y no solo arriba en el perfil porque una clienta no tiene
+   * UNA estilista: tiene la del color, la del corte y la de las uñas. El
+   * perfil muestra una sola —la del bloque más frecuente— y eso dejaba a la
+   * clienta preguntándole al agente quién le había hecho el otro servicio.
+   *
+   * Puede venir vacío: ver `profesionalNombre` en la respuesta del backend.
+   */
+  estilista?: string | null;
+  /** Su `profesional_id`. Es lo único que el backend mira al apartar cupo. */
+  estilistaId?: string | null;
 }
 
 export interface Historial {

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { adicionalesDe, buscarServicio } from "../../../data/catalog";
+import { adicionalesDe, buscarServicio, llevaCorte } from "../../../data/catalog";
 import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
 import { calcularTotal } from "../../../lib/pricing";
@@ -44,7 +44,7 @@ export default function ExtrasPage() {
       </Stack>
 
       <Sticky>
-        <Button onClick={() => navigate(PATHS.date)}>
+        <Button onClick={() => navigate(llevaCorte(s, reserva.extras) ? PATHS.corte : PATHS.date)}>
           {reserva.extras.length
             ? `${t("continuar")} · ${total.precio}${total.tiempo ? ` · ${total.tiempo}` : ""}`
             : t("sinAgregar")}

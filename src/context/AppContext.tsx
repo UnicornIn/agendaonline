@@ -32,6 +32,7 @@ export const RESERVA_VACIA: Readonly<Reserva> = Object.freeze({
   svc: null,
   dens: null,
   plast: null,
+  corte: null,
   extras: [],
   estilista: null,
   estilistaId: null,

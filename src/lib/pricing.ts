@@ -100,7 +100,7 @@ export function resolver(
   };
 }
 
-type ParaCobrar = Pick<Reserva, "svc" | "dens" | "plast" | "extras">;
+type ParaCobrar = Pick<Reserva, "svc" | "dens" | "plast" | "extras" | "corte">;
 
 /** Lo mismo más lo que hace falta para saber si le toca el descuento: si está
  *  invitada y qué día es la cita. */
@@ -134,6 +134,12 @@ export function calcularTotal(reserva: ParaCobrar): Total {
     else if (precio == null) exacto = false;
     mins += aMinutos(a.t) ?? 0;
   }
+
+  // Acá NO se agrega nada por el corte con máquina. Cortar con máquina no es
+  // un servicio que el salón venda —no tiene precio ni duración—, es algo que
+  // unas personas saben hacer. Lo que la respuesta cambia es a QUIÉN se puede
+  // escoger, y eso se resuelve en la pantalla de fecha. Ver
+  // `config.profesionalesMaquina`.
 
   return {
     n, mins, exacto,

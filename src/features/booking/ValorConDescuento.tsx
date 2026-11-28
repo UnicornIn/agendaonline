@@ -16,7 +16,7 @@ export default function ValorConDescuento({
   reserva,
   precioDeLista,
 }: {
-  reserva: Pick<Reserva, "svc" | "dens" | "plast" | "extras" | "promocion" | "fecha">;
+  reserva: Pick<Reserva, "svc" | "dens" | "plast" | "corte" | "extras" | "promocion" | "fecha">;
   /** Lo que diría la fila sin campaña. Puede ser un rango ("$121.000 -
    *  $210.000"), y por eso llega como texto ya formateado y no como número. */
   precioDeLista: string;

@@ -47,9 +47,12 @@ export default function HistorialPage() {
       repite: true,
       dens: historial!.dens,
       plast: historial!.plast,
-      estilista: historial!.estilista || null,
       // Repetir lo de siempre es, sobre todo, repetir con quien la atendió.
-      estilistaId: historial!.estilistaId ?? null,
+      // Manda la de ESTE bloque, no la del perfil: la del perfil es la del
+      // servicio más frecuente, y repetir el color con la que hace las uñas
+      // es mandarla a una agenda donde ese servicio no existe.
+      estilista: pasado.estilista ?? historial!.estilista ?? null,
+      estilistaId: pasado.estilistaId ?? historial!.estilistaId ?? null,
       fecha: null,
       hora: null,
     });
@@ -143,8 +146,15 @@ export default function HistorialPage() {
         const s = buscarServicio(pasado.svc);
         if (!s) return null;
         const r = resolver(s, historial.dens, historial.plast);
-        const meta = [pasado.fecha, pasado.extras.join(", "), r.mins ? hhmm(r.mins) : ""]
-          .filter(Boolean).join(" · ");
+        // Quién se la hizo va en la misma línea que la fecha y antes de la
+        // duración: es lo que la clienta está buscando cuando mira esta
+        // tarjeta, y hasta ahora tenía que escribirle al agente para saberlo.
+        const meta = [
+          pasado.fecha,
+          pasado.estilista ? t("histCon", { "%s": pasado.estilista }) : "",
+          pasado.extras.join(", "),
+          r.mins ? hhmm(r.mins) : "",
+        ].filter(Boolean).join(" · ");
         return (
           <div className="hist" key={`${pasado.svc}-${pasado.fecha}`}>
             <div className="hs">{s.nombre}</div>

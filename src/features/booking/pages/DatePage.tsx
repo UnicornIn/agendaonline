@@ -11,6 +11,7 @@ import { aISO, desdeISO, diasDesde, DOW, hoy, MON, sumarDias } from "../../../li
 import { BlockNote, Button, Chip, Kicker, Label, LinkButton, Sticky, Sub, Title } from "../../../components/ui";
 import CalendarioMes from "../CalendarioMes";
 import { useDiasConCupo } from "../useDiasConCupo";
+import { maquinaDeEstaSede } from "../../../data/sede";
 
 /**
  * Fecha, hora y con quién.
@@ -84,6 +85,26 @@ export default function DatePage() {
 
   const { cupoPorDia, pedir } = useDiasConCupo(idsClave);
 
+  /**
+   * Con máquina, solo quienes saben usarla.
+   *
+   * El recorte se hace acá y no en el backend porque la lista vive en la
+   * configuración de la web (`config.profesionalesMaquina`). Eso tiene un
+   * límite y conviene tenerlo escrito: el servidor NO la conoce, así que lo
+   * único que hace valer el filtro es que de acá salga un `profesionalId` de
+   * los de la lista. Por eso abajo se esconde "la primera disponible".
+   */
+  const maquinistas = maquinaDeEstaSede();
+  const conMaquina = reserva.corte === "maquina" && maquinistas.length > 0;
+  const ofrecidos = useMemo(
+    () =>
+      conMaquina
+        ? (profesionales ?? []).filter((p) => maquinistas.includes(p.profesionalId))
+        : profesionales,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [conMaquina, profesionales]
+  );
+
   /* ---- quiénes prestan este bloque ---- */
   useEffect(() => {
     if (!idsClave) return;
@@ -111,10 +132,24 @@ export default function DatePage() {
    * siendo la mejor información que hay —el servidor filtra igual con él.
    */
   useEffect(() => {
-    if (!profesionales?.length || !reserva.estilistaId) return;
-    if (profesionales.some((p) => p.profesionalId === reserva.estilistaId)) return;
+    if (!ofrecidos?.length || !reserva.estilistaId) return;
+    if (ofrecidos.some((p) => p.profesionalId === reserva.estilistaId)) return;
     actualizar({ estilista: null, estilistaId: null, hora: null });
-  }, [profesionales, reserva.estilistaId, actualizar]);
+  }, [ofrecidos, reserva.estilistaId, actualizar]);
+
+  /**
+   * Con máquina siempre hay alguien escogido.
+   *
+   * Sin "la primera disponible" en pantalla, un `estilistaId` en null sería
+   * una reserva que el servidor reparte por carga entre TODO el plantel —y
+   * ahí se pierde el filtro entero—. Se escoge la primera de la lista: la
+   * clienta la ve marcada y puede cambiarla, pero nunca queda en null.
+   */
+  useEffect(() => {
+    if (!conMaquina || reserva.estilistaId || !ofrecidos?.length) return;
+    const p = ofrecidos[0];
+    actualizar({ estilista: p.nombre, estilistaId: p.profesionalId });
+  }, [conMaquina, ofrecidos, reserva.estilistaId, actualizar]);
 
   /* ---- qué días tienen algo, para no dejarla tocar uno por uno ---- */
   useEffect(() => {
@@ -238,11 +273,13 @@ export default function DatePage() {
       )}
 
       <Label style={{ marginTop: 2 }}>{t("conQuien")}</Label>
-      {profesionales?.length === 0 ? (
-        <p className="sub" style={{ margin: "0 0 12px" }}>{t("sinEstilistas")}</p>
+      {ofrecidos?.length === 0 ? (
+        <p className="sub" style={{ margin: "0 0 12px" }}>
+          {conMaquina ? t("sinEstilistasMaquina") : t("sinEstilistas")}
+        </p>
       ) : (
         <div className="chips">
-          {(profesionales ?? []).map((p) => (
+          {(ofrecidos ?? []).map((p) => (
             <Chip
               key={p.profesionalId}
               selected={reserva.estilistaId === p.profesionalId}
@@ -251,11 +288,19 @@ export default function DatePage() {
               {p.nombre}
             </Chip>
           ))}
-          <Chip selected={reserva.estilistaId === null} onClick={() => elegirProfesional(null)}>
-            {t("primeraDisp")}
-          </Chip>
+          {/* Con máquina no se ofrece: "la primera disponible" es justo donde
+              el servidor elige por su cuenta, y el servidor no sabe quién usa
+              máquina —la lista vive acá—. Dejarlo sería ofrecer un camino que
+              puede terminar con la clienta sentada frente a alguien que solo
+              corta con tijera. */}
+          {!conMaquina && (
+            <Chip selected={reserva.estilistaId === null} onClick={() => elegirProfesional(null)}>
+              {t("primeraDisp")}
+            </Chip>
+          )}
         </div>
       )}
+      {conMaquina && <p className="sub" style={{ margin: "0 0 12px" }}>{t("maquinaQuienes")}</p>}
 
       <Label>{t("dia")}</Label>
       <div className="days">

@@ -143,6 +143,47 @@ export const TEXTOS = {
   extrasSub: ["Se hacen el mismo día, uno después del otro. Sumamos el tiempo a tu bloque para que alcance.",
               "Done the same day, one after the other. We add the time to your slot."],
   sinAgregar: ["Continuar sin agregar", "Continue without extras"],
+  histCon: ["con %s", "with %s"],
+  maquinaQuienes: ["Son quienes cortan con máquina. Escoge una para ver sus horas.",
+                   "These are the people who cut with clippers. Pick one to see their times."],
+  sinEstilistasMaquina: ["Nadie disponible para corte con máquina en este servicio. Escríbenos por WhatsApp y lo resolvemos.",
+                         "No one is available for a clipper cut on this service. Message us on WhatsApp and we'll sort it out."],
+  // El corte: se pregunta por el RESULTADO, no por la herramienta. La clienta
+  // sabe cómo se quiere ver, no con qué se hace; "máquina (barbería)" además
+  // no le habla a una mujer ni a una mamá agendando a su hijo.
+  corteTitulo: ["¿Cómo quieres<br>el corte?", "How would you like<br>your cut?"],
+  corteSub: ["Esto define quién te puede atender.", "This decides who can take you."],
+  corteTijera: ["Con tijera", "With scissors"],
+  corteTijeraH: ["Puntas, capas, forma. El corte de siempre.",
+                 "Ends, layers, shape. The usual cut."],
+  corteMaquina: ["Con máquina", "With clippers"],
+  // "Al ras" es de peluquería. "Muy cortos" lo entiende cualquiera.
+  corteMaquinaH: ["Degradado, rapado, o los lados y la nuca muy cortos.",
+                  "Fades, buzz cuts, or the sides and nape very short."],
+  // Sin empujar hacia ninguna de las dos. La versión anterior decía "si no
+  // estás segura, elige máquina" —porque quien usa máquina también corta con
+  // tijera, así que el error salía barato— y eso habría mandado a media sede
+  // a las dos personas que la usan: sus agendas llenas, las del resto vacías.
+  // Un mensaje que reparte mal el trabajo cuesta más que una cita reagendada.
+  // Cuál es cuál ya lo dicen las dos tarjetas; acá va solo lo que ellas no
+  // pueden decir.
+  // Palabras de salón, no de manual: "acabado" y "disponibilidad" obligan a
+  // traducir antes de decidir, y quien lee rápido no traduce: escoge
+  // cualquiera. Cada frase dice UNA cosa, en el orden en que se piensa —por
+  // qué hay menos horas, y qué hacer con eso.
+  //
+  // La segunda frase resuelve el caso que de verdad confunde: el corte que
+  // lleva las dos, como un degradado con tijera arriba. Las tarjetas lo
+  // presentan como una decisión entre dos, y quien lleva las dos no sabe
+  // dónde ponerse.
+  //
+  // Es una regla para ESE caso, no un default para quien duda. La diferencia
+  // importa: una versión anterior decía "si no estás segura, elige máquina"
+  // y eso habría mandado a media sede a las dos personas que la usan, con
+  // sus agendas llenas y las del resto vacías. Acá solo se mueve quien
+  // necesita la máquina de verdad, que es donde tiene que estar.
+  corteNota: ["Pocas personas en el salón cortan con máquina, por eso vas a ver menos horas libres. <b>Si tu corte lleva máquina y tijera, escoge máquina.</b>",
+              "Only a few people here cut with clippers, so you'll see fewer open times. <b>If your cut uses both clippers and scissors, choose clippers.</b>"],
   fechaTitulo: ["Elige fecha y hora", "Pick a date and time"],
   fechaSub: ["Solo ves horarios donde tu servicio cabe completo antes de cerrar.",
              "You only see slots where your service fits before closing."],
