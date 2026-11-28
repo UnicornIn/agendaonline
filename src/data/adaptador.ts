@@ -149,6 +149,7 @@ export function construirCatalogo(servicios: ServicioApi[]): Servicio[] {
       desc: p.desc,
       incluye: p.incluye,
       nota: p.nota,
+      requiereCorte: p.requiereCorte,
       precio: tieneMatriz ? rango(filas) : money(filas[0].precio),
       tiempo: tieneMatriz ? undefined : duracion(filas[0].duracionMinutos),
       servicioId: tieneMatriz ? undefined : filas[0].servicioId,

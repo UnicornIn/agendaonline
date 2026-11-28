@@ -11,6 +11,7 @@ export const PATHS = {
   plasticity: "/diagnostico/plasticidad",
   detail: "/detalle",
   extras: "/adicionales",
+  corte: "/tipo-de-corte",
   date: "/fecha",
   confirm: "/confirmar",
   deposit: "/abono",

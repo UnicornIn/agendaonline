@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { adicionalesDe, buscarServicio, ETIQUETA_GRUPO } from "../../../data/catalog";
+import { adicionalesDe, buscarServicio, ETIQUETA_GRUPO, llevaCorte } from "../../../data/catalog";
 import { useApp } from "../../../context/AppContext";
 import { PATHS } from "../../../router/paths";
 import { abonoDe, hhmm, money, resolver } from "../../../lib/pricing";
@@ -27,7 +27,12 @@ export default function DetailPage() {
     ? `${t("tuValor")}${r.mins ? ` · ${hhmm(r.mins)}` : ""}`
     : s.tiempo ? `${t("duracionAprox")} · ${s.tiempo}` : "";
 
-  const siguiente = adicionalesDe(s).length ? PATHS.extras : PATHS.date;
+  // Con adicionales se pasa por ahí primero: el corte puede entrar como uno
+  // de ellos, y preguntar con qué se hace antes de saber si lo hay sería
+  // preguntar por un corte que todavía no existe.
+  const siguiente = adicionalesDe(s).length
+    ? PATHS.extras
+    : llevaCorte(s, reserva.extras) ? PATHS.corte : PATHS.date;
 
   // Acá y no al tocar la tarjeta del menú: el servicio que se elige allá
   // todavía no tiene precio —falta el diagnóstico—, y un ViewContent sin valor

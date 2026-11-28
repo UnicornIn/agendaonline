@@ -1,5 +1,7 @@
 import type { Adicional, Densidad, Servicio } from "../types";
+import { maquinaDeEstaSede } from "./sede";
 import {
+  ADICIONAL_CORTE,
   ETIQUETA_GRUPO as ETIQUETA,
   NOTA_GRUPO as NOTA,
   ORDEN_GRUPOS as ORDEN,
@@ -89,6 +91,21 @@ export const plasticidadDisponible = (s: Servicio, p: "pa" | "pb"): boolean =>
   });
 
 export const adicionalesDe = (s: Servicio | undefined): Adicional[] => s?.adicionales ?? [];
+
+/**
+ * Si en esta reserva hay corte y por lo tanto hay que preguntar con qué se hace.
+ *
+ * Mira las dos formas en que un corte entra a la cita: dentro del servicio
+ * —el Full, los de hombre, los de niño: lo dice `requiereCorte`— o agregado
+ * suelto desde adicionales. Por eso recibe los extras y no solo el servicio.
+ *
+ * En una sede sin nadie anotado en `VITE_PROFESIONALES_MAQUINA` devuelve
+ * false siempre: sin saber quién usa máquina no hay a quién filtrar, y la
+ * pregunta sería un paso más que no decide nada.
+ */
+export const llevaCorte = (s: Servicio | undefined, extras: string[]): boolean =>
+  maquinaDeEstaSede().length > 0 &&
+  (!!s?.requiereCorte || extras.includes(ADICIONAL_CORTE));
 
 /* ---------- Del id de la agenda a lo que la web entiende ---------- */
 

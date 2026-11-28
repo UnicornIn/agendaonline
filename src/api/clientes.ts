@@ -97,6 +97,8 @@ function aServicioPasado(bloque: BloqueApi): ServicioPasado | null {
       extras: [],
       grupo: ubicado.servicio.grupo,
       nombre: comoTitulo(bloque.etiqueta),
+      estilista: bloque.profesionalNombre,
+      estilistaId: bloque.profesionalId,
     };
   }
 
@@ -114,7 +116,17 @@ function aServicioPasado(bloque: BloqueApi): ServicioPasado | null {
   }
 
   if (!principal) return null;
-  return { svc: principal.servicio.id, fecha: fechaBonita(bloque.ultimaVez), extras };
+  // El nombre y el id van juntos o no van: un nombre sin id detrás se pinta
+  // bien y después manda la retención sin dueño, que es como la cita terminaba
+  // con otra persona y a otra hora.
+  const conProfesional = bloque.profesionalNombre && bloque.profesionalId;
+  return {
+    svc: principal.servicio.id,
+    fecha: fechaBonita(bloque.ultimaVez),
+    extras,
+    estilista: conProfesional ? bloque.profesionalNombre : null,
+    estilistaId: conProfesional ? bloque.profesionalId : null,
+  };
 }
 
 /**
